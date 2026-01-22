@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superjuego - ¡En Acción!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0f1a;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* Espacio entre el canvas y el botón */
+        }
+
+        #gameCanvas {
+            background-color: #000;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .back-btn {
+            padding: 10px 25px;
+            font-size: 1rem;
+            color: white;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #555;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <a href="index.html" class="back-btn">Volver al Menú</a>
+
+    <script>
+        // Lógica básica del canvas para demostrar que funciona
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Dibuja un fondo simple
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Dibuja un texto de marcador de posición
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '40px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡El juego empieza aquí!', canvas.width / 2, canvas.height / 2);
+    </script>
+
+</body>
+</html>

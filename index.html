@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido al Superjuego</title>
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0f1a; /* Fondo oscuro */
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Contenedor principal */
+        .game-container {
+            text-align: center;
+            padding: 2rem;
+            border: 2px solid #333;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        /* Título con efecto neón */
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: #00ffff;
+            text-shadow: 
+                0 0 5px #00ffff,
+                0 0 10px #00ffff,
+                0 0 20px #0077ff;
+            animation: flicker 2s infinite alternate;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            color: #cccccc;
+        }
+
+        /* Botón de inicio */
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0f0f1a;
+            background: linear-gradient(45deg, #ff00cc, #3333ff);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 0, 204, 0.6);
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Animación simple para el título */
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow: 
+                0 0 5px #00ffff,
+                0 0 10px #00ffff,
+                0 0 20px #0077ff;
+            }
+            20%, 24%, 55% {       
+                text-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Super Juego</h1>
+        <p>Prepárate para la aventura total. ¿Tienes lo que se necesita?</p>
+        
+        <button class="start-btn" onclick="startGame()">Jugar Ahora</button>
+    </div>
+
+    <script>
+        // Lógica simple para el botón
+        function startGame() {
+            const btn = document.querySelector('.start-btn');
+            btn.textContent = "Cargando...";
+            btn.disabled = true; // Evita doble clic
+            
+            // Redirige a la pantalla del juego
+            window.location.href = 'juego.html';
+        }
+    </script>
+
+</body>
+</html>
