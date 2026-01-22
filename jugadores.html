@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiJu - Gestión de Jugadores</title>
+    <!-- Reutilizamos la misma hoja de estilos para mantener la coherencia -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Gestión de Jugadores</h1>
+            <a href="index.html" class="back-link">‹ Volver al Menú</a>
+        </header>
+
+        <main class="content-wrapper">
+            <!-- Formulario para añadir jugadores -->
+            <div class="form-container">
+                <h2>Añadir Nuevo Jugador</h2>
+                <form id="add-player-form">
+                    <input type="text" id="player-name" placeholder="Nombre del jugador..." required autocomplete="off">
+                    <button type="submit" class="btn">Añadir</button>
+                </form>
+            </div>
+
+            <!-- Lista de jugadores existentes -->
+            <div class="list-container">
+                <h2>Jugadores Registrados</h2>
+                <ul id="players-list">
+                    <!-- Los jugadores se cargarán aquí desde Firestore -->
+                    <li class="loading-item">Cargando jugadores...</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- SDK de Firebase -->
+    <!-- Es necesario que incluyas los scripts de la SDK de Firebase que vayas a usar -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <!-- Nuestro script para la lógica de esta página -->
+    <script src="js/jugadores.js"></script>
+
+</body>
+</html>

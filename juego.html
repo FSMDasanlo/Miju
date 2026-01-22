@@ -3,69 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Superjuego - ¡En Acción!</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f0f1a;
-            color: #ffffff;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px; /* Espacio entre el canvas y el botón */
-        }
-
-        #gameCanvas {
-            background-color: #000;
-            border: 2px solid #00ffff;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-        }
-
-        .back-btn {
-            padding: 10px 25px;
-            font-size: 1rem;
-            color: white;
-            background: #333;
-            border: 1px solid #555;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: background-color 0.2s, transform 0.2s;
-        }
-
-        .back-btn:hover {
-            background-color: #555;
-            transform: translateY(-2px);
-        }
-    </style>
+    <title>MiJu - En Juego</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <a href="index.html" class="back-btn">Volver al Menú</a>
+    <!-- Modal de Identificación (Login) -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <h2>Identifícate</h2>
+            <p style="margin-bottom: 1rem; color: #aaa;">Selecciona tu nombre para entrar a la partida:</p>
+            <select id="login-player-select" style="width: 100%; padding: 10px; margin-bottom: 20px; background: #1a1a2e; color: white; border: 1px solid #00ffff; border-radius: 5px;">
+                <option value="">Cargando jugadores...</option>
+            </select>
+            <button id="btn-login" class="btn action-btn">ENTRAR</button>
+        </div>
+    </div>
 
-    <script>
-        // Lógica básica del canvas para demostrar que funciona
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    <!-- Modal Añadir Pregunta -->
+    <div id="add-question-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="close-question-modal">&times;</span>
+            <h2>Añadir mi Pregunta</h2>
+            <form id="question-form">
+                <div class="form-group">
+                    <input type="text" id="q-text" placeholder="Escribe tu pregunta..." required autocomplete="off">
+                </div>
+                <div class="options-grid">
+                    <!-- Generamos 4 inputs para opciones -->
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="0" required checked> <input type="text" class="opt-text" placeholder="Opción A (Correcta)" required></div>
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="1"> <input type="text" class="opt-text" placeholder="Opción B" required></div>
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="2"> <input type="text" class="opt-text" placeholder="Opción C" required></div>
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="3"> <input type="text" class="opt-text" placeholder="Opción D" required></div>
+                </div>
+                <button type="submit" class="btn action-btn">Guardar Pregunta</button>
+            </form>
+        </div>
+    </div>
 
-        // Dibuja un fondo simple
-        ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    <!-- Layout Principal del Juego -->
+    <div class="game-layout hidden" id="game-layout">
+        <!-- Cabecera -->
+        <header class="game-header">
+            <div class="header-left">
+                <h1 id="header-game-ref">Cargando...</h1>
+            </div>
+            <div class="header-right">
+                <span class="player-label">Jugador:</span>
+                <span id="header-player-name" class="player-name-display">...</span>
+            </div>
+        </header>
 
-        // Dibuja un texto de marcador de posición
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '40px Segoe UI';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡El juego empieza aquí!', canvas.width / 2, canvas.height / 2);
-    </script>
+        <!-- Contenedor Central -->
+        <div class="game-body">
+            <!-- Barra Lateral Izquierda (Jugadores) -->
+            <aside class="players-sidebar" id="players-sidebar">
+                <!-- Aquí se inyectarán las cajas de jugadores -->
+            </aside>
+
+            <!-- Área Principal de Juego -->
+            <main class="game-main-area">
+                <!-- Menú de Acciones -->
+                <div id="game-actions" class="actions-container">
+                    <button id="btn-open-add-question" class="btn action-btn">➕ AÑADIR MI PREGUNTA</button>
+                    <button id="btn-start-quiz" class="btn action-btn btn-play">▶️ COMENZAR A JUGAR</button>
+                </div>
+
+                <!-- Interfaz de Preguntas (Quiz) -->
+                <div id="quiz-interface" class="hidden">
+                    <!-- Se llenará dinámicamente desde JS -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- SDK de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <!-- Nueva Lógica del Juego -->
+    <script src="js/juego.js"></script>
 
 </body>
 </html>

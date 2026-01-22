@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiJu - Partidas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Tablero de Partidas</h1>
+            <a href="index.html" class="back-link">‹ Volver al Menú</a>
+        </header>
+
+        <main class="content-wrapper">
+            <!-- Botón para mostrar formulario de nueva partida -->
+            <button id="btn-show-create" class="btn action-btn">+ NUEVA PARTIDA</button>
+
+            <!-- Formulario de creación (Inicialmente oculto) -->
+            <div id="create-game-container" class="form-container hidden">
+                <h2>Configurar Nueva Partida</h2>
+                <form id="create-game-form">
+                    <div class="form-group">
+                        <input type="text" id="game-ref" placeholder="Referencia (Ej: Partida Viernes)" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <select id="game-status">
+                            <option value="Abierta">Abierta</option>
+                            <option value="Privada">Privada</option>
+                            <option value="Cerrada">Cerrada</option>
+                            <option value="Caducada">Caducada</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label for="game-time" style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.9rem;">Tiempo (seg)</label>
+                            <input type="number" id="game-time" value="10" min="5" style="width: 100%;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="game-questions-qty" style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.9rem;">Nº Preguntas</label>
+                            <input type="number" id="game-questions-qty" value="10" min="1" style="width: 100%;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="game-obs" placeholder="Observaciones (Opcional)" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Crear Partida</button>
+                        <button type="button" id="btn-cancel-create" class="btn btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Partidas -->
+            <div class="list-container">
+                <h2>Últimas 10 Partidas</h2>
+                <div id="games-list" class="games-grid">
+                    <p class="loading-text">Cargando partidas...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Detalles (Ventana emergente) -->
+    <div id="game-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header-row">
+                <h2 id="modal-ref">Referencia</h2>
+                <button id="btn-header-qr" class="btn-icon-medium" title="Ver QR de invitación">📱</button>
+            </div>
+            <div class="modal-meta">
+                <span id="modal-status" class="status-badge">Estado</span>
+                <span id="modal-date" class="date-text">Fecha</span>
+            </div>
+            <div class="modal-section">
+                <div class="modal-section-header">
+                    <h3>Jugadores Apuntados (<span id="modal-players-count">0</span>)</h3>
+                    <div class="modal-actions">
+                        <button id="btn-modal-delete-game" class="btn-icon-small btn-danger" title="Eliminar Partida Completa">🗑️</button>
+                        <button id="btn-modal-add" class="btn-icon-small" title="Añadir Jugador">+</button>
+                    </div>
+                </div>
+                <!-- Selector de jugadores (Oculto por defecto) -->
+                <div id="add-player-select-container" class="hidden" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select id="modal-player-select" style="flex-grow: 1; padding: 5px; background: #1a1a2e; color: white; border: 1px solid #333; border-radius: 5px;"></select>
+                    <button id="btn-confirm-add" class="btn-icon-small" style="width: auto; padding: 0 15px; border-radius: 5px;">OK</button>
+                    <button id="btn-cancel-add" class="btn-icon-small" style="width: auto; padding: 0 10px; border-radius: 5px; background: #555; color: #ccc;">X</button>
+                </div>
+                <ul id="modal-players-list"></ul>
+            </div>
+            
+            <!-- Contenedor QR (Oculto por defecto) -->
+            <div id="qr-display" class="hidden" style="text-align: center; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
+                <img id="qr-image" src="" alt="Código QR" style="border: 5px solid white; border-radius: 10px; max-width: 200px;">
+                <p style="margin-top: 10px; color: #00ffff; word-break: break-all; font-size: 0.9rem;" id="game-link-text"></p>
+            </div>
+
+            <div class="modal-section">
+                <h3>Observaciones</h3>
+                <p id="modal-obs">Sin observaciones.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SDK de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <!-- Lógica de Partidas -->
+    <script src="js/partidas.js"></script>
+
+</body>
+</html>

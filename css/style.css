@@ -1,0 +1,651 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f0f1a; /* Fondo muy oscuro */
+    color: #ffffff;
+    height: 100vh;
+    overflow-y: auto; /* Permitir scroll si el contenido es largo */
+}
+
+/* --- PANTALLA DE INTRODUCCIÓN --- */
+#intro-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Siempre encima */
+    transition: opacity 1s ease-out, visibility 1s;
+}
+
+.intro-content {
+    text-align: center;
+}
+
+.game-title {
+    font-size: 6rem;
+    font-weight: 900;
+    letter-spacing: 10px;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #0077ff;
+    margin-bottom: 2rem;
+    animation: pulse 2s infinite;
+}
+
+.loading-bar-container {
+    width: 300px;
+    height: 4px;
+    background: #333;
+    margin: 0 auto 1rem;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0%;
+    background: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+    animation: load 5s linear forwards; /* Dura 5 segundos como pediste */
+}
+
+.loading-text {
+    color: #888;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+/* --- MENÚ PRINCIPAL --- */
+#main-menu {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    opacity: 1;
+    transition: opacity 1s ease-in;
+}
+
+.menu-header h2 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: rgba(255, 255, 255, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 15px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 800px;
+    width: 90%;
+}
+
+/* Estilos de las Tarjetas */
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+.card .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #00ffff;
+}
+
+.card p {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+/* Tarjeta Futura (deshabilitada visualmente) */
+.card-future {
+    opacity: 0.5;
+    border-style: dashed;
+    cursor: default;
+}
+.card-future:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Clases de utilidad */
+.hidden {
+    display: none !important;
+    opacity: 0 !important;
+}
+
+/* Animaciones */
+@keyframes pulse {
+    0%, 100% { opacity: 1; text-shadow: 0 0 20px #00ffff; }
+    50% { opacity: 0.8; text-shadow: 0 0 10px #00ffff; }
+}
+
+@keyframes load {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+/* --- ESTILOS PARA PÁGINAS INTERIORES (ej. jugadores.html) --- */
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 90%;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    color: #00ffff;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+.back-link {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: #00ffff;
+}
+
+.form-container, .list-container {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+h2 {
+    margin-bottom: 1rem;
+    color: #eee;
+    font-weight: 400;
+}
+
+#add-player-form {
+    display: flex;
+    gap: 10px;
+}
+
+input[type="text"], input[type="number"] {
+    flex-grow: 1;
+    padding: 10px 15px;
+    background: #1a1a2e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+}
+
+#players-list {
+    list-style: none;
+    max-height: 50vh; /* Altura máxima para permitir scroll dentro de la lista */
+    overflow-y: auto;
+}
+
+#players-list li {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- ESTILOS ESPECÍFICOS DE PARTIDAS --- */
+
+.action-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #00ffff, #0077ff);
+    color: #0f0f1a;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    background: #1a1a2e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: white;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-secondary {
+    background: #333;
+    color: #ccc;
+}
+
+/* Grid de Partidas */
+.games-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.game-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 5px solid #555; /* Color por defecto */
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.game-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Colores por estado */
+.status-Abierta { border-left-color: #00ff00; color: #fff; }
+.status-Cerrada { border-left-color: #ff0000; opacity: 0.7; }
+.status-Caducada { border-left-color: #888; opacity: 0.5; }
+.status-Privada { border-left-color: #ffcc00; }
+
+.game-card-header {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.game-card-info {
+    font-size: 0.8rem;
+    color: #aaa;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.btn-add-player {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.btn-add-player:hover {
+    background: #00ffff;
+    color: #000;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+/* --- MODAL (Ventana Emergente) --- */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: #151525;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid #00ffff;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px; right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.modal-meta {
+    margin: 1rem 0;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.1);
+}
+
+/* --- ESTILOS LISTA JUGADORES EN MODAL --- */
+.modal-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon-small {
+    background: #00ffff;
+    color: #000;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-danger {
+    background: #ff4444;
+    color: white;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-delete-player {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.btn-delete-player:hover {
+    transform: scale(1.2);
+}
+
+/* --- CABECERA MODAL CON QR --- */
+.modal-header-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-right: 40px; /* Espacio para el botón de cerrar */
+}
+
+.btn-icon-medium {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.btn-icon-medium:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+/* --- ESTILOS DE LA PANTALLA DE JUEGO (juego.html) --- */
+
+.game-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+}
+
+.game-header {
+    background: #151525;
+    border-bottom: 2px solid #00ffff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    color: #00ffff;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.player-label {
+    color: #aaa;
+    margin-right: 10px;
+}
+
+.player-name-display {
+    font-weight: bold;
+    color: #fff;
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+.game-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden; /* Para que el scroll sea interno */
+}
+
+/* Barra Lateral de Jugadores */
+.players-sidebar {
+    width: 250px;
+    background: rgba(0, 0, 0, 0.3);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-player-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-player-card.is-me {
+    border-color: #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+}
+
+.player-score-badge {
+    background: #0077ff;
+    color: white;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.game-main-area {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+}
+
+/* --- ESTILOS DEL JUEGO (ACCIONES Y QUIZ) --- */
+.actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.btn-play {
+    background: linear-gradient(90deg, #00ff00, #007700);
+    color: white;
+}
+
+/* Formulario Añadir Pregunta */
+.options-grid {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.option-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Interfaz del Quiz */
+#quiz-interface {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.question-card h2 {
+    font-size: 1.8rem;
+    color: #00ffff;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(0,255,255,0.3);
+}
+
+.quiz-options-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.quiz-option-btn {
+    padding: 20px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid #00ffff;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.quiz-option-btn:hover {
+    background: #00ffff;
+    color: #000;
+    transform: scale(1.05);
+}
+
+/* Barra de Temporizador */
+.timer-container {
+    width: 100%;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+.timer-fill {
+    height: 100%;
+    background: #00ff00; /* Empieza verde */
+    width: 100%;
+    transform-origin: left;
+}
+}
