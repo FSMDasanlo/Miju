@@ -125,26 +125,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 const text = event.target.result;
                 const questions = [];
                 
-                // Separamos por los guiones "---"
-                const blocks = text.split('---');
+                // Normalizamos saltos de línea
+                const normalizedText = text.replace(/\r\n/g, '\n');
+                
+                // Separamos por bloques que empiecen por número y punto (Ej: "1. ")
+                // Añadimos un salto de línea al principio para asegurar que pilla la primera pregunta
+                const blocks = ('\n' + normalizedText).split(/\n(?=\d+\.)/);
                 
                 blocks.forEach(block => {
-                    // Limpiamos líneas vacías
+                    // Limpiamos líneas vacías y espacios extra
                     const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l);
                     if (lines.length === 0) return;
 
-                    // 1. Extraer Pregunta (Primera línea)
-                    // Quitamos "1. " y los "**"
-                    let qText = lines[0].replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').trim();
+                    // Buscamos dónde empiezan las opciones (A), B), etc.)
+                    const firstOptionIndex = lines.findIndex(l => /^[a-d]\)/i.test(l));
+                    
+                    if (firstOptionIndex === -1) return; // Si no hay opciones, saltamos este bloque
+
+                    // 1. Extraer Pregunta (Todas las líneas antes de la primera opción)
+                    // Quitamos el número inicial "1. " y posibles asteriscos
+                    let qText = lines.slice(0, firstOptionIndex).join(' ')
+                        .replace(/^\d+\.\s*/, '')
+                        .replace(/\*\*/g, '')
+                        .trim();
                     
                     const options = [];
                     let correctIndex = 0;
                     
-                    // 2. Extraer Opciones (Busca líneas que empiecen por a), b), etc.)
-                    lines.forEach(line => {
-                        if (line.match(/^[a-d]\)/i)) {
+                    // 2. Extraer Opciones
+                    lines.slice(firstOptionIndex).forEach(line => {
+                        if (/^[a-d]\)/i.test(line)) {
                             let isCorrect = line.includes('✅');
-                            // Limpiamos "a) " y el emoji
+                            // Limpiamos "A) " y el emoji
                             let optText = line.replace(/^[a-d]\)\s*/i, '').replace('✅', '').trim();
                             
                             options.push(optText);

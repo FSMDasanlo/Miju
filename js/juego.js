@@ -79,34 +79,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 1.1 Si no hay preguntas, cargamos las por defecto (Solo lo hace el primero que entra o detecta esto)
-            if (!gameData.preguntas) {
-                // Cargamos las preguntas desde la colección de Firestore
-                loadQuestionsFromBank(gameId);
-                return; // Esperamos al siguiente snapshot con los datos cargados
-            }
-
             currentQuestions = gameData.preguntas || [];
             renderHeader(gameData);
             renderSidebar(gameData.jugadores || []);
+
+            // Detectar si la partida ha empezado (para los jugadores que están esperando)
+            if (gameData.estado === 'Jugando' && !isQuizActive) {
+                gameActions.classList.add('hidden');
+                quizInterface.classList.remove('hidden');
+                isQuizActive = true;
+                renderQuizQuestion();
+            }
         }, (error) => {
             console.error("Error recibiendo actualizaciones:", error);
         });
-    };
-
-    // Función auxiliar para cargar preguntas desde la colección global 'banco_preguntas'
-    const loadQuestionsFromBank = async (targetGameId) => {
-        const bankRef = db.collection('banco_preguntas');
-        let snapshot = await bankRef.get();
-
-        let pool = [];
-        snapshot.forEach(doc => pool.push(doc.data()));
-
-        // Mezclar aleatoriamente
-        const shuffled = pool.sort(() => Math.random() - 0.5);
-        
-        // Actualizar la partida con las preguntas obtenidas
-        await db.collection('partidas').doc(targetGameId).update({ preguntas: shuffled });
     };
 
     // Función para mostrar la pantalla de resultados
@@ -352,8 +338,15 @@ document.addEventListener('DOMContentLoaded', () => {
             autor: currentPlayerName
         };
 
+        // 1. Guardar en la partida actual (para jugarla ahora)
         await db.collection('partidas').doc(gameId).update({
             preguntas: firebase.firestore.FieldValue.arrayUnion(newQuestion)
+        });
+
+        // 2. Guardar TAMBIÉN en el banco general (para que quede registrada para el futuro)
+        // Así el juego crece con las aportaciones de los jugadores
+        db.collection('banco_preguntas').add(newQuestion).catch(err => {
+            console.error("Error guardando copia en banco:", err);
         });
 
         addQuestionModal.classList.add('hidden');
@@ -384,7 +377,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Si todos cumplieron y la partida estaba Abierta, pasamos a Jugando
             if (gData.estado === 'Abierta') {
-                await db.collection('partidas').doc(gameId).update({ estado: 'Jugando' });
+                // 1. Calcular cuántas preguntas faltan para llegar al total configurado
+                // (Total Configurado - Preguntas ya subidas por los jugadores)
+                let finalQuestions = [...questions];
+                const totalConfigured = gData.cantidadPreguntas || 10;
+                const needed = totalConfigured - finalQuestions.length;
+
+                // 2. Si faltan preguntas, las cogemos del banco al azar
+                if (needed > 0) {
+                    try {
+                        const bankSnapshot = await db.collection('banco_preguntas').get();
+                        let bankPool = [];
+                        bankSnapshot.forEach(doc => bankPool.push(doc.data()));
+                        
+                        // Mezclar banco y coger las necesarias
+                        bankPool.sort(() => Math.random() - 0.5);
+                        const defaults = bankPool.slice(0, needed);
+                        
+                        finalQuestions = finalQuestions.concat(defaults);
+                    } catch (error) {
+                        console.error("Error obteniendo preguntas del banco:", error);
+                    }
+                }
+
+                // 3. Mezclar todo (Jugadores + Banco) para que el orden sea aleatorio
+                finalQuestions.sort(() => Math.random() - 0.5);
+
+                await db.collection('partidas').doc(gameId).update({ 
+                    preguntas: finalQuestions,
+                    estado: 'Jugando' 
+                });
             }
         } catch (error) {
             console.error("Error verificando estado de partida:", error);

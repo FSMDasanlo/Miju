@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${game.jugadores ? game.jugadores.length : 0} Jugadores</span>
                         <button class="btn-clone-game" title="Clonar Partida">📋</button>
                         <button class="btn-edit-game" title="Editar Partida">✏️</button>
+                        <button class="btn-delete-game" title="Eliminar Partida">🗑️</button>
                         <button class="btn-add-player" title="Añadir Jugador Rápido">+</button>
                     </div>
                 `;
@@ -100,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Click para ver detalles
                 card.addEventListener('click', (e) => {
                     // Si pulsamos en botones de acción, no abrimos el modal
-                    if (e.target.closest('.btn-add-player') || e.target.closest('.btn-edit-game') || e.target.closest('.btn-clone-game')) return;
+                    if (e.target.closest('.btn-add-player') || e.target.closest('.btn-edit-game') || e.target.closest('.btn-clone-game') || e.target.closest('.btn-delete-game')) return;
                     openModal(game);
                 });
 
@@ -154,6 +155,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     createContainer.classList.remove('hidden');
                     btnShowCreate.classList.add('hidden');
                     createContainer.scrollIntoView({ behavior: 'smooth' });
+                });
+
+                // Lógica del botón ELIMINAR (Lista)
+                const btnDelete = card.querySelector('.btn-delete-game');
+                btnDelete.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`¿Estás seguro de que quieres ELIMINAR la partida "${game.referencia}"?\nEsta acción no se puede deshacer.`)) {
+                        try {
+                            await gamesCollection.doc(game.id).delete();
+                            renderGames();
+                        } catch (error) {
+                            console.error("Error eliminando partida:", error);
+                            alert("Error al eliminar la partida.");
+                        }
+                    }
                 });
 
                 // Lógica del botón de añadir jugador rápido
@@ -469,8 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Construir enlace mailto
         const gameUrl = `${window.location.origin}/juego.html?partida=${currentModalGameId}`;
+        // Generamos la URL del QR para incluirla como enlace, ya que mailto no soporta imágenes adjuntas
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gameUrl)}`;
         const subject = "Invitación a jugar a MIJU";
-        const body = `Hola.\n\nTus amigos te están invitando a jugar a MIJU.\nEscanea el QR o pincha en el siguiente enlace:\n\n${gameUrl}\n\nGracias.`;
+        const body = `Hola.\n\nTus amigos te están invitando a jugar a MIJU.\n\nPincha en el siguiente enlace para entrar:\n${gameUrl}\n\nO si prefieres escanear el QR, puedes verlo aquí:\n${qrUrl}\n\nGracias.`;
         
         console.log("Abriendo cliente de correo...");
         const mailtoLink = `mailto:?bcc=${emails.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

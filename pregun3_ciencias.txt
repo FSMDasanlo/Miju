@@ -1,0 +1,299 @@
+1. ¿Cuál es el planeta más cercano al Sol?
+   A) Venus
+   B) Marte
+   C) Mercurio ✅
+   D) Júpiter
+
+2. ¿Qué necesitan las plantas para hacer la fotosíntesis?
+   A) Luz solar ✅
+   B) Sonido
+   C) Viento
+   D) Electricidad
+
+3. ¿Cuál es el estado del agua a 0 °C?
+   A) Gas
+   B) Líquido
+   C) Plasma
+   D) Sólido ✅
+
+4. ¿Qué órgano bombea la sangre?
+   A) Pulmón
+   B) Cerebro
+   C) Corazón ✅
+   D) Estómago
+
+5. ¿Qué astro ilumina la Tierra durante el día?
+   A) La Luna
+   B) El Sol ✅
+   C) Las estrellas
+   D) Marte
+
+6. ¿Cuál es el gas que respiramos principalmente?
+   A) Oxígeno ✅
+   B) Hidrógeno
+   C) Helio
+   D) Dióxido de carbono
+
+7. ¿Cuántas patas tiene una araña?
+   A) 6
+   B) 8 ✅
+   C) 10
+   D) 12
+
+8. ¿Qué parte de la planta absorbe el agua?
+   A) La hoja
+   B) El tallo
+   C) La flor
+   D) La raíz ✅
+
+9. ¿Cuál es el animal más grande del mundo?
+   A) Elefante
+   B) Tiburón
+   C) Ballena azul ✅
+   D) Jirafa
+
+10. ¿Qué sentido usamos para oler?
+    A) Vista
+    B) Gusto
+    C) Olfato ✅
+    D) Tacto
+
+11. ¿Qué planeta es conocido como el planeta rojo?
+    A) Venus
+    B) Marte ✅
+    C) Saturno
+    D) Urano
+
+12. ¿Cuál es la función de los pulmones?
+    A) Bombear sangre
+    B) Pensar
+    C) Respirar ✅
+    D) Digerir alimentos
+
+13. ¿Qué material atrae el imán?
+    A) Plástico
+    B) Madera
+    C) Hierro ✅
+    D) Vidrio
+
+14. ¿Qué ser vivo pone huevos?
+    A) Perro
+    B) Gato
+    C) Gallina ✅
+    D) Vaca
+
+15. ¿Cuál es la capa externa de la Tierra?
+    A) Núcleo
+    B) Manto
+    C) Corteza ✅
+    D) Lava
+
+16. ¿Qué forma tiene la Tierra?
+    A) Cuadrada
+    B) Plana
+    C) Triangular
+    D) Esférica ✅
+
+17. ¿Qué órgano usamos para ver?
+    A) Orejas
+    B) Ojos ✅
+    C) Nariz
+    D) Manos
+
+18. ¿Qué produce la lluvia?
+    A) Nubes ✅
+    B) Montañas
+    C) Árboles
+    D) Ríos
+
+19. ¿Cuál es el estado del aire?
+    A) Sólido
+    B) Líquido
+    C) Gas ✅
+    D) Plasma
+
+20. ¿Qué animal vive en el agua?
+    A) León
+    B) Pez ✅
+    C) Perro
+    D) Caballo
+
+21. ¿Qué parte del cuerpo protege el cerebro?
+    A) Brazo
+    B) Cráneo ✅
+    C) Pierna
+    D) Cuello
+
+22. ¿Qué necesitan los humanos para vivir?
+    A) Oro
+    B) Oxígeno ✅
+    C) Juguetes
+    D) Fuego
+
+23. ¿Qué estrella está más cerca de la Tierra?
+    A) Sirio
+    B) Alfa Centauri
+    C) El Sol ✅
+    D) Polaris
+
+24. ¿Qué instrumento se usa para medir la temperatura?
+    A) Regla
+    B) Balanza
+    C) Termómetro ✅
+    D) Reloj
+
+25. ¿Cuál es el estado natural del hielo?
+    A) Gas
+    B) Líquido
+    C) Plasma
+    D) Sólido ✅
+
+26. ¿Qué animal es un mamífero?
+    A) Rana
+    B) Serpiente
+    C) Delfín ✅
+    D) Pez
+
+27. ¿Qué parte del cuerpo usamos para escuchar?
+    A) Ojos
+    B) Boca
+    C) Orejas ✅
+    D) Nariz
+
+28. ¿Qué planeta tiene anillos?
+    A) Marte
+    B) Venus
+    C) Saturno ✅
+    D) Mercurio
+
+29. ¿Qué tipo de energía da el Sol?
+    A) Eléctrica
+    B) Solar ✅
+    C) Nuclear
+    D) Sonora
+
+30. ¿Qué gas necesitan las plantas?
+    A) Oxígeno
+    B) Helio
+    C) Dióxido de carbono ✅
+    D) Nitrógeno
+
+31. ¿Qué animal dice “miau”?
+    A) Perro
+    B) Vaca
+    C) Gato ✅
+    D) Caballo
+
+32. ¿Qué sentido usamos para saborear?
+    A) Olfato
+    B) Vista
+    C) Gusto ✅
+    D) Tacto
+
+33. ¿Qué cubre el cuerpo de los peces?
+    A) Pelo
+    B) Plumas
+    C) Escamas ✅
+    D) Piel seca
+
+34. ¿Qué planeta es el más grande?
+    A) Marte
+    B) Tierra
+    C) Júpiter ✅
+    D) Venus
+
+35. ¿Qué parte de la planta hace la fotosíntesis?
+    A) Raíz
+    B) Hoja ✅
+    C) Tallo
+    D) Semilla
+
+36. ¿Qué fenómeno ocurre cuando llueve mucho?
+    A) Sequía
+    B) Terremoto
+    C) Inundación ✅
+    D) Volcán
+
+37. ¿Qué animal puede volar?
+    A) Perro
+    B) Pájaro ✅
+    C) Caballo
+    D) Pez
+
+38. ¿Qué órgano usamos para pensar?
+    A) Corazón
+    B) Pulmón
+    C) Cerebro ✅
+    D) Estómago
+
+39. ¿Qué tipo de animal es la rana?
+    A) Reptil
+    B) Mamífero
+    C) Ave
+    D) Anfibio ✅
+
+40. ¿Qué necesitamos para ver objetos?
+    A) Sonido
+    B) Luz ✅
+    C) Agua
+    D) Calor
+
+41. ¿Qué planeta vivimos?
+    A) Marte
+    B) Venus
+    C) Tierra ✅
+    D) Júpiter
+
+42. ¿Qué forma el arcoíris?
+    A) Viento
+    B) Nieve
+    C) Luz y agua ✅
+    D) Tierra
+
+43. ¿Qué animal tiene trompa?
+    A) León
+    B) Elefante ✅
+    C) Mono
+    D) Oso
+
+44. ¿Qué parte del cuerpo usamos para caminar?
+    A) Brazos
+    B) Manos
+    C) Cabeza
+    D) Piernas ✅
+
+45. ¿Qué material es transparente?
+    A) Madera
+    B) Metal
+    C) Vidrio ✅
+    D) Piedra
+
+46. ¿Qué animal vive en la granja?
+    A) León
+    B) Vaca ✅
+    C) Tigre
+    D) Delfín
+
+47. ¿Qué órgano usamos para respirar?
+    A) Corazón
+    B) Riñones
+    C) Pulmones ✅
+    D) Hígado
+
+48. ¿Qué tipo de energía usa una linterna?
+    A) Solar
+    B) Eléctrica ✅
+    C) Nuclear
+    D) Térmica
+
+49. ¿Qué cubre el cuerpo de las aves?
+    A) Pelo
+    B) Escamas
+    C) Piel
+    D) Plumas ✅
+
+50. ¿Qué planeta es conocido como el planeta azul?
+    A) Marte
+    B) Júpiter
+    C) Tierra ✅
+    D) Saturno

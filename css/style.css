@@ -358,6 +358,21 @@ input[type="text"], input[type="number"] {
     transition: all 0.2s;
 }
 
+.btn-delete-game {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
 .btn-add-player {
     background: rgba(0, 255, 255, 0.1);
     border: 1px solid #00ffff;
@@ -382,6 +397,12 @@ input[type="text"], input[type="number"] {
 .btn-edit-game:hover {
     background: #ffff00;
     color: #000;
+    transform: scale(1.1);
+}
+
+.btn-delete-game:hover {
+    background: #ff4444;
+    color: white;
     transform: scale(1.1);
 }
 
@@ -434,6 +455,13 @@ input[type="text"], input[type="number"] {
     border-radius: 4px;
     font-size: 0.8rem;
     background: rgba(255,255,255,0.1);
+}
+
+.modal-separator {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
+    margin: 20px 0;
 }
 
 /* --- ESTILOS LISTA JUGADORES EN MODAL --- */
@@ -701,9 +729,53 @@ input[type="text"], input[type="number"] {
 }
 
 .quiz-option-btn:hover {
-    background: #00ffff;
-    color: #000;
     transform: scale(1.05);
+}
+
+/* --- COLORES DE LAS OPCIONES (Naranja, Verde, Azul, Rojo) --- */
+
+/* Opción 1: Naranja */
+.quiz-option-btn:nth-child(1) {
+    background: rgba(255, 165, 0, 0.2);
+    border-color: #ffa500;
+}
+.quiz-option-btn:nth-child(1):hover {
+    background: #ffa500;
+    color: #000;
+    box-shadow: 0 0 15px #ffa500;
+}
+
+/* Opción 2: Verde */
+.quiz-option-btn:nth-child(2) {
+    background: rgba(0, 255, 0, 0.2);
+    border-color: #00ff00;
+}
+.quiz-option-btn:nth-child(2):hover {
+    background: #00ff00;
+    color: #000;
+    box-shadow: 0 0 15px #00ff00;
+}
+
+/* Opción 3: Azul */
+.quiz-option-btn:nth-child(3) {
+    background: rgba(0, 119, 255, 0.2);
+    border-color: #0077ff;
+}
+.quiz-option-btn:nth-child(3):hover {
+    background: #0077ff;
+    color: #000;
+    box-shadow: 0 0 15px #0077ff;
+}
+
+/* Opción 4: Rojo */
+.quiz-option-btn:nth-child(4) {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+}
+.quiz-option-btn:nth-child(4):hover {
+    background: #ff4444;
+    color: #000;
+    box-shadow: 0 0 15px #ff4444;
 }
 
 /* Barra de Temporizador */
