@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- REFERENCIAS DEL DOM ---
     const addPlayerForm = document.getElementById('add-player-form');
     const playerNameInput = document.getElementById('player-name');
+    const playerEmailInput = document.getElementById('player-email');
     const playersList = document.getElementById('players-list');
 
     // --- FUNCIONES ---
@@ -49,7 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 
                 li.innerHTML = `
-                    <span>${player.name}</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: bold;">${player.name}</span>
+                        <span style="font-size: 0.8rem; color: #aaa;">${player.email || ''}</span>
+                    </div>
                     <button class="btn-delete-player" title="Eliminar">🗑️</button>
                 `;
 
@@ -79,10 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
     addPlayerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const playerName = playerNameInput.value.trim();
+        const playerEmail = playerEmailInput.value.trim();
 
         if (playerName) {
             await playersCollection.add({
-                name: playerName
+                name: playerName,
+                email: playerEmail
             });
             addPlayerForm.reset(); // Limpiar el input
             renderPlayers(); // Volver a renderizar la lista actualizada

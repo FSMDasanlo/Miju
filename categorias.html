@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiJu - Categorías y Preguntas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Banco de Preguntas</h1>
+            <a href="index.html" class="back-link">‹ Volver al Menú</a>
+        </header>
+
+        <main class="content-wrapper">
+            <!-- Panel de Acciones -->
+            <div class="form-container">
+                <h2>Gestión de Preguntas</h2>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <!-- 1. Subida Masiva -->
+                    <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                        <h3>1. Subida Masiva (.txt)</h3>
+                        <p style="color: #aaa; font-size: 0.85rem; margin-bottom: 10px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 4px;">
+                            Formato:<br>
+                            1. **Pregunta**<br>
+                            a) Opción... b) Opción ✅<br>---
+                        </p>
+                        <input type="file" id="file-upload" accept=".txt" class="hidden">
+                        <button id="btn-mass-upload" class="btn action-btn" style="margin-bottom: 0;">📂 Seleccionar Archivo</button>
+                    </div>
+
+                    <!-- 2. Subida Individual -->
+                    <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center;">
+                        <h3>2. Subida Individual</h3>
+                        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 10px;">Crea una pregunta manualmente.</p>
+                        <button id="btn-add-single" class="btn action-btn" style="margin-bottom: 0;">➕ Nueva Pregunta</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Preguntas -->
+            <div class="list-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>Preguntas en Base de Datos</h2>
+                    <span id="questions-count" class="status-badge">0</span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="search-filter" placeholder="🔍 Buscar por texto..." style="width: 100%;">
+                </div>
+                <ul id="questions-list" style="max-height: 60vh; overflow-y: auto;">
+                    <li class="loading-item">Cargando preguntas...</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Añadir Pregunta (Reutilizado) -->
+    <div id="add-question-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="close-question-modal">&times;</span>
+            <h2>Nueva Pregunta</h2>
+            <form id="question-form">
+                <div class="form-group">
+                    <input type="text" id="q-text" placeholder="Escribe tu pregunta..." required autocomplete="off">
+                </div>
+                <div class="options-grid">
+                    <!-- Generamos 4 inputs para opciones -->
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="0" required checked> <input type="text" class="opt-text" placeholder="Opción A (Correcta)" required></div>
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="1"> <input type="text" class="opt-text" placeholder="Opción B" required></div>
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="2"> <input type="text" class="opt-text" placeholder="Opción C" required></div>
+                    <div class="option-input-group"><input type="radio" name="correct-opt" value="3"> <input type="text" class="opt-text" placeholder="Opción D" required></div>
+                </div>
+                <button type="submit" class="btn action-btn">Guardar en Banco</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SDK de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <script src="js/categorias.js"></script>
+</body>
+</html>

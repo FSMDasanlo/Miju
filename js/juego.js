@@ -15,31 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const db = firebase.firestore();
 
-    // --- CONSTANTES ---
-    // Preguntas semilla para inicializar la colección 'banco_preguntas' en Firestore
-    const SEED_QUESTIONS = [
-        { texto: "¿En qué año fue fundada Madrid como Mayrit?", opciones: ["852", "711", "1085", "1492"], correcta: 0, autor: "Sistema" },
-        { texto: "¿Cuántos distritos tiene la ciudad de Madrid?", opciones: ["19", "20", "21", "22"], correcta: 2, autor: "Sistema" },
-        { texto: "¿En qué año Madrid se convirtió en capital de España?", opciones: ["1492", "1561", "1605", "1700"], correcta: 1, autor: "Sistema" },
-        { texto: "¿Cuántos municipios tiene la Comunidad de Madrid?", opciones: ["175", "178", "179", "182"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Altura aproximada (en metros) sobre el nivel del mar de Madrid?", opciones: ["567", "635", "667", "712"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántas líneas tiene el Metro de Madrid (2025)?", opciones: ["10", "12", "13", "14"], correcta: 3, autor: "Sistema" },
-        { texto: "¿En qué año se inauguró el Museo del Prado?", opciones: ["1785", "1808", "1819", "1833"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántos habitantes aproximadamente tiene la ciudad de Madrid?", opciones: ["2,8 millones", "3,1 millones", "3,3 millones", "3,8 millones"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántas puertas tiene la Plaza Mayor?", opciones: ["7", "8", "9", "10"], correcta: 3, autor: "Sistema" },
-        { texto: "¿En qué año se inauguró el Metro de Madrid?", opciones: ["1905", "1912", "1919", "1925"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántos parques principales tiene el Retiro?", opciones: ["5", "6", "7", "8"], correcta: 3, autor: "Sistema" },
-        { texto: "¿Número aproximado de árboles en el Parque del Retiro?", opciones: ["10.000", "15.000", "19.000", "25.000"], correcta: 3, autor: "Sistema" },
-        { texto: "¿En qué año se inauguró el estadio Santiago Bernabéu?", opciones: ["1935", "1947", "1952", "1960"], correcta: 1, autor: "Sistema" },
-        { texto: "¿Cuántas plantas tiene el edificio Torre de Cristal?", opciones: ["45", "49", "52", "60"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántos kilómetros cuadrados ocupa la ciudad de Madrid?", opciones: ["500", "550", "604", "650"], correcta: 2, autor: "Sistema" },
-        { texto: "¿En qué año se construyó la Puerta de Alcalá?", opciones: ["1758", "1769", "1778", "1801"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántos arcos tiene la Puerta de Alcalá?", opciones: ["3", "4", "5", "6"], correcta: 2, autor: "Sistema" },
-        { texto: "¿Cuántos museos forman el “Paseo del Arte”?", opciones: ["2", "3", "4", "5"], correcta: 1, autor: "Sistema" },
-        { texto: "¿Cuántos barrios tiene el distrito Centro?", opciones: ["5", "6", "7", "8"], correcta: 1, autor: "Sistema" },
-        { texto: "¿Temperatura máxima histórica registrada en Madrid (°C)?", opciones: ["40,2", "41,5", "42,1", "42,7"], correcta: 3, autor: "Sistema" }
-    ];
-
     // --- REFERENCIAS DOM ---
     const loginModal = document.getElementById('login-modal');
     const loginSelect = document.getElementById('login-player-select');
@@ -57,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeQuestionModal = document.getElementById('close-question-modal');
     const questionForm = document.getElementById('question-form');
     const quizInterface = document.getElementById('quiz-interface');
+    const resultsScreen = document.getElementById('results-screen');
+    const rankingList = document.getElementById('ranking-list');
 
     // --- ESTADO ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -96,6 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const gameData = doc.data();
             gameConfig = gameData; // Guardamos config globalmente
 
+            // Si la partida está cerrada, mostrar resultados
+            if (gameData.estado === 'Cerrada') {
+                showResults(gameData);
+                return;
+            }
+
             // 1.1 Si no hay preguntas, cargamos las por defecto (Solo lo hace el primero que entra o detecta esto)
             if (!gameData.preguntas) {
                 // Cargamos las preguntas desde la colección de Firestore
@@ -116,18 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const bankRef = db.collection('banco_preguntas');
         let snapshot = await bankRef.get();
 
-        // Auto-sembrado: Si la colección está vacía, subimos las preguntas semilla
-        if (snapshot.empty) {
-            console.log("Sembrando banco de preguntas en Firestore...");
-            const batch = db.batch();
-            SEED_QUESTIONS.forEach(q => {
-                const docRef = bankRef.doc();
-                batch.set(docRef, q);
-            });
-            await batch.commit();
-            snapshot = await bankRef.get(); // Volver a leer
-        }
-
         let pool = [];
         snapshot.forEach(doc => pool.push(doc.data()));
 
@@ -136,6 +107,45 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Actualizar la partida con las preguntas obtenidas
         await db.collection('partidas').doc(targetGameId).update({ preguntas: shuffled });
+    };
+
+    // Función para mostrar la pantalla de resultados
+    const showResults = (gameData) => {
+        loginModal.classList.add('hidden');
+        gameLayout.classList.add('hidden');
+        resultsScreen.classList.remove('hidden');
+
+        const players = gameData.jugadores || [];
+        
+        // Ordenar por puntos (descendente)
+        players.sort((a, b) => {
+            const scoreA = (typeof a === 'object' ? a.puntos : 0) || 0;
+            const scoreB = (typeof b === 'object' ? b.puntos : 0) || 0;
+            return scoreB - scoreA;
+        });
+
+        rankingList.innerHTML = '';
+        players.forEach((player, index) => {
+            const name = typeof player === 'object' ? player.name : player;
+            const score = (typeof player === 'object' ? player.puntos : 0) || 0;
+            
+            const li = document.createElement('li');
+            li.className = `ranking-item ${index === 0 ? 'winner' : ''}`;
+            
+            let medal = '';
+            if (index === 0) medal = '🥇 ';
+            else if (index === 1) medal = '🥈 ';
+            else if (index === 2) medal = '🥉 ';
+
+            li.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <span class="rank-position">${medal}#${index + 1}</span>
+                    <span>${name}</span>
+                </div>
+                <span class="rank-score">${score} pts</span>
+            `;
+            rankingList.appendChild(li);
+        });
     };
 
     // 2. Renderizar Cabecera
@@ -161,13 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = typeof player === 'object' ? player.name : player;
             // Si no existe la propiedad respuestas, asumimos 0
             const answersCount = (typeof player === 'object' && player.respuestas) ? player.respuestas : 0;
+            const pointsCount = (typeof player === 'object' && player.puntos) ? player.puntos : 0;
 
             const card = document.createElement('div');
             card.className = `sidebar-player-card ${name === currentPlayerName ? 'is-me' : ''}`;
             
             card.innerHTML = `
                 <span class="sidebar-player-name">${name}</span>
-                <span class="player-score-badge" title="Respuestas enviadas">${answersCount}</span>
+                <span class="player-score-badge" title="Puntos / Respuestas">${pointsCount} pts</span>
             `;
             playersSidebar.appendChild(card);
         });
@@ -264,6 +275,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Detener temporizador porque ha contestado
         if (timerInterval) clearTimeout(timerInterval);
 
+        // Verificar si es correcta antes de avanzar
+        const question = currentQuestions[currentQuestionIndex];
+        const isCorrect = parseInt(selectedIndex) === question.correcta;
+
         // Aquí podríamos validar si es correcta, pero el requisito es "actualizar contestadas"
         // Avanzamos índice localmente
         currentQuestionIndex++;
@@ -290,7 +305,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Incrementamos respuestas
                     players[playerIndex].respuestas = (players[playerIndex].respuestas || 0) + 1;
                     
-                    transaction.update(gameRef, { jugadores: players });
+                    // Sumamos puntos si es correcta
+                    if (isCorrect) {
+                        players[playerIndex].puntos = (players[playerIndex].puntos || 0) + 1;
+                    }
+
+                    // Guardar detalle de la respuesta (índice seleccionado)
+                    if (!players[playerIndex].respuestasDetalle) {
+                        players[playerIndex].respuestasDetalle = {};
+                    }
+                    players[playerIndex].respuestasDetalle[currentQuestionIndex] = parseInt(selectedIndex);
+                    
+                    // Comprobar si TODOS han terminado para cerrar la partida
+                    const totalQuestions = doc.data().cantidadPreguntas || (doc.data().preguntas ? doc.data().preguntas.length : 0);
+                    const allFinished = players.every(p => (p.respuestas || 0) >= totalQuestions);
+
+                    if (allFinished) {
+                        transaction.update(gameRef, { jugadores: players, estado: 'Cerrada' });
+                    } else {
+                        transaction.update(gameRef, { jugadores: players });
+                    }
                 }
             });
         } catch (error) {
@@ -328,7 +362,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Comenzar Quiz
-    btnStartQuiz.addEventListener('click', () => {
+    btnStartQuiz.addEventListener('click', async () => {
+        // Verificar si todos han puesto su pregunta antes de empezar
+        try {
+            const gameDoc = await db.collection('partidas').doc(gameId).get();
+            const gData = gameDoc.data();
+            const players = gData.jugadores || [];
+            const questions = gData.preguntas || [];
+
+            // Identificar qué jugadores NO han añadido pregunta todavía
+            const missingPlayers = players.filter(p => {
+                const pName = typeof p === 'object' ? p.name : p;
+                return !questions.some(q => q.autor === pName);
+            });
+
+            if (missingPlayers.length > 0) {
+                const names = missingPlayers.map(p => typeof p === 'object' ? p.name : p).join(', ');
+                alert(`⛔ No se puede empezar aún.\n\nFaltan los siguientes jugadores por añadir su pregunta:\n\n👉 ${names}`);
+                return; // Bloqueamos el inicio
+            }
+
+            // Si todos cumplieron y la partida estaba Abierta, pasamos a Jugando
+            if (gData.estado === 'Abierta') {
+                await db.collection('partidas').doc(gameId).update({ estado: 'Jugando' });
+            }
+        } catch (error) {
+            console.error("Error verificando estado de partida:", error);
+            alert("Error de conexión al verificar la partida.");
+            return;
+        }
+
         gameActions.classList.add('hidden');
         quizInterface.classList.remove('hidden');
         isQuizActive = true;

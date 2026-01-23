@@ -22,6 +22,7 @@
             <div id="create-game-container" class="form-container hidden">
                 <h2>Configurar Nueva Partida</h2>
                 <form id="create-game-form">
+                    <input type="hidden" id="edit-game-id">
                     <div class="form-group">
                         <input type="text" id="game-ref" placeholder="Referencia (Ej: Partida Viernes)" required autocomplete="off">
                     </div>
@@ -72,9 +73,30 @@
                 <button id="btn-header-qr" class="btn-icon-medium" title="Ver QR de invitación">📱</button>
             </div>
             <div class="modal-meta">
-                <span id="modal-status" class="status-badge">Estado</span>
                 <span id="modal-date" class="date-text">Fecha</span>
             </div>
+            
+            <!-- Panel de Estadísticas (Nuevo) -->
+            <div class="modal-stats-grid">
+                <div class="stat-box">
+                    <span class="stat-label">Estado</span>
+                    <span id="modal-status" class="stat-value">--</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">⏱️ Tiempo/Preg</span>
+                    <span id="modal-time" class="stat-value">--</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">❓ Total Preguntas</span>
+                    <span id="modal-questions-qty" class="stat-value">--</span>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>Observaciones</h3>
+                <p id="modal-obs">Sin observaciones.</p>
+            </div>
+
             <div class="modal-section">
                 <div class="modal-section-header">
                     <h3>Jugadores Apuntados (<span id="modal-players-count">0</span>)</h3>
@@ -86,21 +108,32 @@
                 <!-- Selector de jugadores (Oculto por defecto) -->
                 <div id="add-player-select-container" class="hidden" style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <select id="modal-player-select" style="flex-grow: 1; padding: 5px; background: #1a1a2e; color: white; border: 1px solid #333; border-radius: 5px;"></select>
-                    <button id="btn-confirm-add" class="btn-icon-small" style="width: auto; padding: 0 15px; border-radius: 5px;">OK</button>
                     <button id="btn-cancel-add" class="btn-icon-small" style="width: auto; padding: 0 10px; border-radius: 5px; background: #555; color: #ccc;">X</button>
                 </div>
                 <ul id="modal-players-list"></ul>
             </div>
             
+            <!-- Botón Resultados (Solo visible si Cerrada) -->
+            <button id="btn-view-results" class="btn action-btn hidden" style="margin-top: 1rem; background: linear-gradient(90deg, #ffd700, #ffaa00); color: #000;">📊 Ver Resultados Detallados</button>
+
             <!-- Contenedor QR (Oculto por defecto) -->
             <div id="qr-display" class="hidden" style="text-align: center; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
                 <img id="qr-image" src="" alt="Código QR" style="border: 5px solid white; border-radius: 10px; max-width: 200px;">
                 <p style="margin-top: 10px; color: #00ffff; word-break: break-all; font-size: 0.9rem;" id="game-link-text"></p>
+                <button id="btn-send-invite" class="btn action-btn" style="margin-top: 15px; width: auto; font-size: 1rem; padding: 10px 20px;">📧 Enviar invitación</button>
             </div>
+        </div>
+    </div>
 
-            <div class="modal-section">
-                <h3>Observaciones</h3>
-                <p id="modal-obs">Sin observaciones.</p>
+    <!-- Modal Tabla de Resultados -->
+    <div id="results-table-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 95%; width: 1200px; max-height: 90vh; overflow-y: auto;">
+            <span class="close-modal" id="close-results-modal">&times;</span>
+            <h2 style="color: #ffd700; text-align: center; margin-bottom: 20px;">Resultados Detallados</h2>
+            <div style="overflow-x: auto;">
+                <table id="results-table" style="width: 100%; border-collapse: collapse; color: white; min-width: 600px;">
+                    <!-- Se llena dinámicamente -->
+                </table>
             </div>
         </div>
     </div>

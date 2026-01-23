@@ -16,11 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const playersCollection = db.collection('jugadores');
 
     let currentModalGameId = null; // Para saber qué partida estamos editando en el modal
+    let currentModalPlayers = []; // Guardamos los jugadores en memoria para el email
 
     // --- REFERENCIAS DOM ---
     const btnShowCreate = document.getElementById('btn-show-create');
     const createContainer = document.getElementById('create-game-container');
     const createForm = document.getElementById('create-game-form');
+    const editGameIdInput = document.getElementById('edit-game-id');
     const btnCancelCreate = document.getElementById('btn-cancel-create');
     const gamesListContainer = document.getElementById('games-list');
     
@@ -30,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalRef = document.getElementById('modal-ref');
     const modalStatus = document.getElementById('modal-status');
     const modalDate = document.getElementById('modal-date');
+    const modalTime = document.getElementById('modal-time');
+    const modalQuestionsQty = document.getElementById('modal-questions-qty');
     const modalPlayersList = document.getElementById('modal-players-list');
     const modalPlayersCount = document.getElementById('modal-players-count');
     const modalObs = document.getElementById('modal-obs');
@@ -37,12 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnModalDeleteGame = document.getElementById('btn-modal-delete-game');
     const addPlayerSelectContainer = document.getElementById('add-player-select-container');
     const modalPlayerSelect = document.getElementById('modal-player-select');
-    const btnConfirmAdd = document.getElementById('btn-confirm-add');
     const btnCancelAdd = document.getElementById('btn-cancel-add');
     const btnHeaderQr = document.getElementById('btn-header-qr');
     const qrDisplay = document.getElementById('qr-display');
     const qrImage = document.getElementById('qr-image');
     const gameLinkText = document.getElementById('game-link-text');
+    const btnSendInvite = document.getElementById('btn-send-invite');
+    
+    // Referencias Resultados
+    const btnViewResults = document.getElementById('btn-view-results');
+    const resultsTableModal = document.getElementById('results-table-modal');
+    const closeResultsModal = document.getElementById('close-results-modal');
+    const resultsTable = document.getElementById('results-table');
 
     // --- FUNCIONES ---
 
@@ -81,15 +91,69 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="game-card-info">
                         <span>${date}</span>
                         <span>${game.jugadores ? game.jugadores.length : 0} Jugadores</span>
+                        <button class="btn-clone-game" title="Clonar Partida">📋</button>
+                        <button class="btn-edit-game" title="Editar Partida">✏️</button>
                         <button class="btn-add-player" title="Añadir Jugador Rápido">+</button>
                     </div>
                 `;
                 
                 // Click para ver detalles
                 card.addEventListener('click', (e) => {
-                    // Si pulsamos en el botón de añadir, no abrimos el modal de detalles
-                    if (e.target.closest('.btn-add-player')) return;
+                    // Si pulsamos en botones de acción, no abrimos el modal
+                    if (e.target.closest('.btn-add-player') || e.target.closest('.btn-edit-game') || e.target.closest('.btn-clone-game')) return;
                     openModal(game);
+                });
+
+                // Lógica del botón CLONAR
+                const btnClone = card.querySelector('.btn-clone-game');
+                btnClone.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (!confirm(`¿Crear una copia de la partida "${game.referencia}"?`)) return;
+
+                    try {
+                        // Limpiamos los jugadores para quitar puntuaciones y respuestas antiguas
+                        const cleanPlayers = (game.jugadores || []).map(p => {
+                            const name = typeof p === 'object' ? p.name : p;
+                            return { name: name }; // Solo guardamos el nombre, reseteando lo demás
+                        });
+
+                        const newGame = {
+                            referencia: `${game.referencia} (Copia)`,
+                            estado: 'Abierta', // Forzamos estado abierta
+                            tiempoPregunta: game.tiempoPregunta || 10,
+                            cantidadPreguntas: game.cantidadPreguntas || 10,
+                            observaciones: game.observaciones || '',
+                            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
+                            jugadores: cleanPlayers
+                        };
+
+                        await gamesCollection.add(newGame);
+                        renderGames(); // Recargar lista
+                    } catch (error) {
+                        console.error("Error clonando partida:", error);
+                        alert("Error al clonar la partida.");
+                    }
+                });
+
+                // Lógica del botón EDITAR
+                const btnEdit = card.querySelector('.btn-edit-game');
+                btnEdit.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Rellenar formulario
+                    document.getElementById('game-ref').value = game.referencia;
+                    document.getElementById('game-status').value = game.estado;
+                    document.getElementById('game-time').value = game.tiempoPregunta || 10;
+                    document.getElementById('game-questions-qty').value = game.cantidadPreguntas || 10;
+                    document.getElementById('game-obs').value = game.observaciones || '';
+                    editGameIdInput.value = game.id;
+
+                    // Cambiar interfaz a modo edición
+                    document.querySelector('#create-game-container h2').textContent = "Editar Partida";
+                    document.querySelector('#create-game-form button[type="submit"]').textContent = "Guardar Cambios";
+                    
+                    createContainer.classList.remove('hidden');
+                    btnShowCreate.classList.add('hidden');
+                    createContainer.scrollIntoView({ behavior: 'smooth' });
                 });
 
                 // Lógica del botón de añadir jugador rápido
@@ -127,10 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Abrir Modal con detalles
     const openModal = (game) => {
         currentModalGameId = game.id; // Guardamos el ID actual
+        currentModalPlayers = game.jugadores || []; // Guardamos jugadores en memoria
         modalRef.textContent = game.referencia;
         modalStatus.textContent = game.estado;
-        modalStatus.className = `status-badge status-${game.estado}`;
         modalDate.textContent = game.fechaCreacion ? game.fechaCreacion.toDate().toLocaleString() : 'Pendiente';
+        modalTime.textContent = (game.tiempoPregunta || 10) + ' seg';
+        modalQuestionsQty.textContent = (game.cantidadPreguntas || 10);
         modalObs.textContent = game.observaciones || "Sin observaciones.";
         
         // Reseteamos la vista del QR cada vez que abrimos el modal
@@ -177,6 +243,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Botón Ver Resultados (Solo si está cerrada)
+        if (game.estado === 'Cerrada') {
+            btnViewResults.classList.remove('hidden');
+        } else {
+            btnViewResults.classList.add('hidden');
+        }
+
         modal.classList.remove('hidden');
     };
 
@@ -203,26 +276,46 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCancelCreate.addEventListener('click', () => {
         createContainer.classList.add('hidden');
         btnShowCreate.classList.remove('hidden');
+        
+        // Resetear formulario y modo edición
         createForm.reset();
+        editGameIdInput.value = '';
+        document.querySelector('#create-game-container h2').textContent = "Configurar Nueva Partida";
+        document.querySelector('#create-game-form button[type="submit"]').textContent = "Crear Partida";
     });
 
-    // Crear Partida
+    // Crear o Editar Partida
     createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const newGame = {
+        const editId = editGameIdInput.value;
+        const gameData = {
             referencia: document.getElementById('game-ref').value,
             estado: document.getElementById('game-status').value,
             tiempoPregunta: parseInt(document.getElementById('game-time').value) || 10,
             cantidadPreguntas: parseInt(document.getElementById('game-questions-qty').value) || 10,
-            observaciones: document.getElementById('game-obs').value,
-            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
-            jugadores: [] // Array vacío inicial
+            observaciones: document.getElementById('game-obs').value
         };
 
         try {
-            await gamesCollection.add(newGame);
+            if (editId) {
+                // MODO EDICIÓN
+                await gamesCollection.doc(editId).update(gameData);
+            } else {
+                // MODO CREACIÓN
+                // Forzamos estado 'Abierta' y fecha de creación
+                gameData.estado = 'Abierta';
+                gameData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+                gameData.jugadores = [];
+                
+                await gamesCollection.add(gameData);
+            }
+
             createForm.reset();
+            editGameIdInput.value = '';
+            document.querySelector('#create-game-container h2').textContent = "Configurar Nueva Partida";
+            document.querySelector('#create-game-form button[type="submit"]').textContent = "Crear Partida";
+            
             createContainer.classList.add('hidden');
             btnShowCreate.classList.remove('hidden');
             renderGames(); // Recargar lista
@@ -257,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const gameData = gameDoc.data();
             const currentPlayers = (gameData.jugadores || []).map(p => typeof p === 'object' ? p.name : p);
 
-            modalPlayerSelect.innerHTML = '';
+            modalPlayerSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
             
             if (playersSnapshot.empty) {
                 modalPlayerSelect.innerHTML = '<option value="">No hay jugadores registrados</option>';
@@ -272,6 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const option = document.createElement('option');
                     option.value = p.name;
                     option.textContent = p.name;
+                    // Guardamos el email en un atributo de datos para usarlo al añadir
+                    if (p.email) option.dataset.email = p.email;
                     modalPlayerSelect.appendChild(option);
                     count++;
                 }
@@ -287,13 +382,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Confirmar añadir jugador desde el selector
-    btnConfirmAdd.addEventListener('click', async () => {
+    // Añadir jugador al cambiar la selección
+    modalPlayerSelect.addEventListener('change', async () => {
         const name = modalPlayerSelect.value;
+        const selectedOption = modalPlayerSelect.options[modalPlayerSelect.selectedIndex];
+        const email = selectedOption.dataset.email || null;
+
         if (name && name.trim() !== "") {
             try {
+                const playerObj = { name: name.trim() };
+                if (email) playerObj.email = email;
+
                 await gamesCollection.doc(currentModalGameId).update({
-                    jugadores: firebase.firestore.FieldValue.arrayUnion({ name: name.trim() })
+                    jugadores: firebase.firestore.FieldValue.arrayUnion(playerObj)
                 });
                 addPlayerSelectContainer.classList.add('hidden'); // Ocultar tras añadir
                 refreshModal();
@@ -338,6 +439,125 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ocultar
             qrDisplay.classList.add('hidden');
         }
+    });
+
+    // Botón Enviar Invitación por Correo
+    btnSendInvite.addEventListener('click', () => {
+        console.log("--- Iniciando envío de invitación ---");
+
+        // 1. Usamos los datos en memoria (sin await) para no perder el gesto del usuario
+        const players = currentModalPlayers;
+
+        console.log("Jugadores en la partida:", players);
+
+        // 2. Filtrar emails
+        const emails = [];
+        players.forEach(p => {
+            if (typeof p === 'object' && p.email) {
+                emails.push(p.email);
+            } else {
+                console.warn("Jugador ignorado (sin email o formato antiguo):", p);
+            }
+        });
+
+        console.log("Emails válidos encontrados:", emails);
+
+        if (emails.length === 0) {
+            alert("⚠️ No se encontraron emails en esta partida.\n\nPosible causa: Los jugadores se añadieron antes de configurar sus correos.\n\nSolución: Elimina al jugador de la partida y vuélvelo a añadir.");
+            return;
+        }
+
+        // 3. Construir enlace mailto
+        const gameUrl = `${window.location.origin}/juego.html?partida=${currentModalGameId}`;
+        const subject = "Invitación a jugar a MIJU";
+        const body = `Hola.\n\nTus amigos te están invitando a jugar a MIJU.\nEscanea el QR o pincha en el siguiente enlace:\n\n${gameUrl}\n\nGracias.`;
+        
+        console.log("Abriendo cliente de correo...");
+        const mailtoLink = `mailto:?bcc=${emails.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        // Método robusto: Crear enlace temporal y hacer click
+        const link = document.createElement('a');
+        link.href = mailtoLink;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Feedback al usuario + Copia al portapapeles (Fallback por si falla la apertura)
+        const clipboardText = `ASUNTO: ${subject}\n\nMENSAJE:\n${body}\n\nDESTINATARIOS (CCO):\n${emails.join(', ')}`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(clipboardText).then(() => {
+                alert("📧 Se está intentando abrir tu programa de correo.\n\n📋 Además, he copiado el mensaje y los destinatarios al portapapeles por si necesitas pegarlos manualmente.");
+            }).catch(() => {
+                alert("📧 Se está intentando abrir tu programa de correo.");
+            });
+        } else {
+            alert("📧 Se está intentando abrir tu programa de correo.");
+        }
+    });
+
+    // Botón Ver Resultados Detallados
+    btnViewResults.addEventListener('click', async () => {
+        // Obtenemos datos frescos de la partida
+        const doc = await gamesCollection.doc(currentModalGameId).get();
+        if (!doc.exists) return;
+        const game = doc.data();
+        const players = game.jugadores || [];
+        const questions = game.preguntas || [];
+
+        // Construir Tabla
+        let html = '<thead><tr><th style="text-align: left; padding: 10px; border-bottom: 2px solid #00ffff;">Pregunta</th>';
+        
+        // Cabeceras de Jugadores
+        players.forEach(p => {
+            const name = typeof p === 'object' ? p.name : p;
+            html += `<th style="padding: 10px; border-bottom: 2px solid #00ffff; text-align: center;">${name}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        // Filas de Preguntas
+        questions.forEach((q, qIndex) => {
+            html += `<tr>
+                <td style="padding: 10px; border-bottom: 1px solid #333; max-width: 300px;">
+                    <div style="font-weight: bold;">${qIndex + 1}. ${q.texto}</div>
+                    <div style="font-size: 0.8rem; color: #aaa;">Correcta: ${q.opciones[q.correcta]}</div>
+                </td>`;
+            
+            players.forEach(p => {
+                const pObj = typeof p === 'object' ? p : { name: p, respuestasDetalle: {} };
+                const details = pObj.respuestasDetalle || {};
+                const answerIndex = details[qIndex]; // Índice de la respuesta dada
+                
+                let cellContent = '-';
+                let cellStyle = 'background: rgba(0,0,0,0.2);'; // Por defecto
+
+                if (answerIndex !== undefined) {
+                    const isCorrect = answerIndex === q.correcta;
+                    const answerText = q.opciones[answerIndex] || 'Error';
+                    
+                    if (isCorrect) {
+                        cellStyle = 'background: rgba(0, 255, 0, 0.2); color: #00ff00;'; // Verde
+                        cellContent = `✅ ${answerText}`;
+                    } else {
+                        cellStyle = 'background: rgba(128, 128, 128, 0.2); color: #ccc;'; // Gris
+                        cellContent = `❌ ${answerText}`;
+                    }
+                }
+
+                html += `<td style="padding: 10px; border-bottom: 1px solid #333; text-align: center; ${cellStyle}">${cellContent}</td>`;
+            });
+            html += '</tr>';
+        });
+        html += '</tbody>';
+
+        resultsTable.innerHTML = html;
+        resultsTableModal.classList.remove('hidden');
+    });
+
+    // Cerrar modal de resultados
+    closeResultsModal.addEventListener('click', () => {
+        resultsTableModal.classList.add('hidden');
     });
 
     // Inicializar
