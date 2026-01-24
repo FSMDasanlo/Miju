@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitación a MIJU</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos específicos para la tarjeta de invitación */
+        .invite-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            padding: 20px;
+        }
+        .invite-card {
+            background: #151525;
+            border: 2px solid #00ffff;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
+            animation: pulse-border 3s infinite;
+        }
+        .invite-title {
+            font-size: 2.5rem;
+            color: #00ffff;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        .invite-text {
+            color: #ccc;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        .friends-list {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            color: #fff;
+            font-style: italic;
+        }
+        .qr-box {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.3); }
+            100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invite-container">
+        <div class="invite-card">
+            <h1 class="invite-title">¡Te han invitado!</h1>
+            
+            <p class="invite-text">Tus amigos te están esperando para una partida de <strong>MIJU</strong>.</p>
+            
+            <div class="friends-list">
+                <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Jugadores en la partida:</p>
+                <strong id="players-names">Cargando...</strong>
+            </div>
+
+            <div class="qr-box">
+                <img id="qr-image" src="" alt="QR Acceso" width="200" height="200">
+            </div>
+
+            <br>
+
+            <a id="btn-join" href="#" class="btn action-btn">🚀 ENTRAR A LA PARTIDA</a>
+        </div>
+    </div>
+
+    <script>
+        // Lógica simple para cargar datos de la URL
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const gameId = params.get('partida');
+            const players = params.get('jugadores'); // Pasaremos los nombres por URL para que sea rápido
+
+            if (!gameId) {
+                document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:50px;">Enlace no válido</h1>';
+                return;
+            }
+
+            // Configurar enlace y QR
+            const gameUrl = new URL(`juego.html?partida=${gameId}`, window.location.href).href;
+            document.getElementById('btn-join').href = gameUrl;
+            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gameUrl)}`;
+
+            // Mostrar nombres (decodificados de la URL)
+            document.getElementById('players-names').textContent = players ? decodeURIComponent(players) : "Tus amigos";
+        });
+    </script>
+</body>
+</html>

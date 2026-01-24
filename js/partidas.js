@@ -444,7 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btnHeaderQr.addEventListener('click', () => {
         if (qrDisplay.classList.contains('hidden')) {
             // Generar y mostrar
-            const gameUrl = `${window.location.origin}/juego.html?partida=${currentModalGameId}`;
+            // Usamos URL relativa para que funcione en GitHub Pages (que incluye el nombre del repo en la ruta)
+            const gameUrl = new URL(`juego.html?partida=${currentModalGameId}`, window.location.href).href;
             const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gameUrl)}`;
             
             qrImage.src = qrApiUrl;
@@ -483,12 +484,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 3. Construir enlace mailto
-        const gameUrl = `${window.location.origin}/juego.html?partida=${currentModalGameId}`;
-        // Generamos la URL del QR para incluirla como enlace, ya que mailto no soporta imágenes adjuntas
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gameUrl)}`;
+        // 3. Preparar datos para la invitación
+        // Obtenemos los nombres de los jugadores para ponerlos en el correo
+        const playerNames = players.map(p => typeof p === 'object' ? p.name : p).join(', ');
+        
+        // Construimos el enlace a la NUEVA página de invitación (pasamos los nombres por URL para mostrarlos allí también)
+        const invitePageUrl = new URL(`invitacion.html?partida=${currentModalGameId}&jugadores=${encodeURIComponent(playerNames)}`, window.location.href).href;
+        
         const subject = "Invitación a jugar a MIJU";
-        const body = `Hola.\n\nTus amigos te están invitando a jugar a MIJU.\n\nPincha en el siguiente enlace para entrar:\n${gameUrl}\n\nO si prefieres escanear el QR, puedes verlo aquí:\n${qrUrl}\n\nGracias.`;
+        
+        // Cuerpo del correo en texto plano (pero con enlace a la web bonita)
+        const body = `Hola.\n\nTus amigos (${playerNames}) te están invitando a una partida de MIJU.\n\nHemos preparado una invitación con el código QR y el acceso directo.\n\nPincha aquí para verla y entrar:\n${invitePageUrl}\n\n¡Te esperamos!`;
         
         console.log("Abriendo cliente de correo...");
         const mailtoLink = `mailto:?bcc=${emails.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
