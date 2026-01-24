@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainMenu.classList.remove('hidden');
     } else {
         // Si es la primera vez, ejecutamos la animación
-        // Tiempo de espera: 5000 milisegundos = 5 segundos
+        // Tiempo de espera: 2500 milisegundos = 2.5 segundos
         setTimeout(() => {
             // 1. Desvanecer la intro
             introScreen.style.opacity = '0';
@@ -24,6 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 4. Guardamos en la sesión que la intro ya se ha visto
                 sessionStorage.setItem('introShown', 'true');
             }, 1000);
-        }, 5000);
+        }, 2500);
     }
 });

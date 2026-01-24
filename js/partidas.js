@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalPlayersCount = document.getElementById('modal-players-count');
     const modalObs = document.getElementById('modal-obs');
     const btnModalAdd = document.getElementById('btn-modal-add');
+    const btnModalPlay = document.getElementById('btn-modal-play');
     const btnModalDeleteGame = document.getElementById('btn-modal-delete-game');
     const addPlayerSelectContainer = document.getElementById('add-player-select-container');
     const modalPlayerSelect = document.getElementById('modal-player-select');
@@ -424,6 +425,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cancelar añadir
     btnCancelAdd.addEventListener('click', () => {
         addPlayerSelectContainer.classList.add('hidden');
+    });
+
+    // Botón JUGAR (Ir directo a la partida)
+    btnModalPlay.addEventListener('click', () => {
+        if (currentModalGameId) {
+            window.location.href = `juego.html?partida=${currentModalGameId}`;
+        }
     });
 
     // Botón Eliminar Partida (Dentro del Modal)

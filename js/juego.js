@@ -23,6 +23,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerGameRef = document.getElementById('header-game-ref');
     const headerPlayerName = document.getElementById('header-player-name');
     const playersSidebar = document.getElementById('players-sidebar');
+
+    // Inyectar botón de "Volver al Menú" en la cabecera
+    const gameHeader = document.querySelector('.game-header');
+    if (gameHeader && !document.getElementById('btn-exit-game')) {
+        const btnExit = document.createElement('button');
+        btnExit.id = 'btn-exit-game';
+        btnExit.innerHTML = '🏠'; // Icono casa
+        btnExit.title = "Volver al Menú Principal";
+        // Estilos inline para asegurar que se ve bien sin tocar CSS
+        btnExit.style.background = 'transparent';
+        btnExit.style.border = '1px solid #00ffff';
+        btnExit.style.color = '#00ffff';
+        btnExit.style.borderRadius = '50%';
+        btnExit.style.width = '40px';
+        btnExit.style.height = '40px';
+        btnExit.style.fontSize = '1.2rem';
+        btnExit.style.cursor = 'pointer';
+        btnExit.style.marginRight = '15px';
+        
+        btnExit.addEventListener('click', () => {
+            if (confirm("¿Quieres salir de la partida y volver al menú?")) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Insertar al principio del header (a la izquierda del título)
+        gameHeader.insertBefore(btnExit, gameHeader.firstChild);
+    }
     
     // Nuevas referencias
     const gameActions = document.getElementById('game-actions');
@@ -79,16 +107,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Calcular total de preguntas para saber cuándo se termina
+            const totalQuestions = gameData.cantidadPreguntas || (gameData.preguntas ? gameData.preguntas.length : 0);
+
+            // Sincronizar índice local con el progreso guardado en BD (BLOQUEO DE SEGURIDAD)
+            // Esto evita que si recargas la página puedas volver a responder preguntas ya hechas
+            const me = (gameData.jugadores || []).find(p => (typeof p === 'object' ? p.name : p) === currentPlayerName);
+            if (me && typeof me.respuestas === 'number') {
+                // Si acabamos de entrar (índice 0) y la BD dice que ya llevamos respuestas, actualizamos
+                if (currentQuestionIndex === 0 && me.respuestas > 0) {
+                    currentQuestionIndex = me.respuestas;
+                }
+            }
+
             currentQuestions = gameData.preguntas || [];
             renderHeader(gameData);
-            renderSidebar(gameData.jugadores || []);
+            renderSidebar(gameData.jugadores || [], totalQuestions);
 
             // Detectar si la partida ha empezado (para los jugadores que están esperando)
-            if (gameData.estado === 'Jugando' && !isQuizActive) {
-                gameActions.classList.add('hidden');
-                quizInterface.classList.remove('hidden');
-                isQuizActive = true;
-                renderQuizQuestion();
+            if (gameData.estado === 'Jugando') {
+                // Si no estábamos jugando, o si ya terminamos (para mostrar pantalla fin), renderizamos
+                if (!isQuizActive || currentQuestionIndex >= totalQuestions) {
+                    gameActions.classList.add('hidden');
+                    quizInterface.classList.remove('hidden');
+                    isQuizActive = true;
+                    renderQuizQuestion();
+                }
             }
         }, (error) => {
             console.error("Error recibiendo actualizaciones:", error);
@@ -141,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 3. Renderizar Barra Lateral de Jugadores
-    const renderSidebar = (players) => {
+    const renderSidebar = (players, totalQuestions = 10) => {
         playersSidebar.innerHTML = '';
 
         // Ordenar: Primero yo, luego el resto alfabéticamente
@@ -159,11 +203,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const answersCount = (typeof player === 'object' && player.respuestas) ? player.respuestas : 0;
             const pointsCount = (typeof player === 'object' && player.puntos) ? player.puntos : 0;
 
+            // Lógica de Estado Visual
+            let statusIcon = '💤'; // Inactivo / Esperando
+            let statusClass = 'status-waiting';
+
+            if (answersCount >= totalQuestions) {
+                statusIcon = '🏁'; // Finalizado
+                statusClass = 'status-finished';
+            } else if (answersCount > 0) {
+                statusIcon = '🏃'; // Jugando
+                statusClass = 'status-playing';
+            }
+
             const card = document.createElement('div');
-            card.className = `sidebar-player-card ${name === currentPlayerName ? 'is-me' : ''}`;
+            card.className = `sidebar-player-card ${name === currentPlayerName ? 'is-me' : ''} ${statusClass}`;
             
             card.innerHTML = `
-                <span class="sidebar-player-name">${name}</span>
+                <div style="display:flex; align-items:center; gap:5px; overflow:hidden;">
+                    <span>${statusIcon}</span>
+                    <span class="sidebar-player-name">${name}</span>
+                </div>
                 <span class="player-score-badge" title="Puntos / Respuestas">${pointsCount} pts</span>
             `;
             playersSidebar.appendChild(card);
@@ -252,7 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Añadir eventos a los botones de opción
         document.querySelectorAll('.quiz-option-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => submitAnswer(e.target.dataset.index));
+            btn.addEventListener('click', (e) => {
+                // 1. Bloquear botones visualmente para evitar doble click o cambios de opinión
+                document.querySelectorAll('.quiz-option-btn').forEach(b => b.style.pointerEvents = 'none');
+                // 2. Usamos currentTarget para asegurar 100% que leemos el índice del botón, no de un elemento interno
+                submitAnswer(e.currentTarget.dataset.index);
+            });
         });
     };
 

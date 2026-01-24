@@ -57,7 +57,7 @@ body {
     width: 0%;
     background: #00ffff;
     box-shadow: 0 0 10px #00ffff;
-    animation: load 5s linear forwards; /* Dura 5 segundos como pediste */
+    animation: load 2.5s linear forwards; /* Reducido a la mitad */
 }
 
 .loading-text {
@@ -642,7 +642,13 @@ input[type="text"], input[type="number"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-left: 4px solid transparent; /* Preparado para el estado */
 }
+
+/* Estados del Jugador */
+.status-waiting { border-left-color: #666 !important; opacity: 0.7; }
+.status-playing { border-left-color: #00ffff !important; opacity: 1; }
+.status-finished { border-left-color: #00ff00 !important; background: rgba(0, 255, 0, 0.1); }
 
 .sidebar-player-card.is-me {
     border-color: #00ffff;
@@ -858,4 +864,66 @@ input[type="text"], input[type="number"] {
     border-radius: 15px;
     font-size: 1rem;
 }
+
+/* --- RESPONSIVE DESIGN (MÓVIL) --- */
+@media (max-width: 768px) {
+    /* Ajustes generales */
+    .game-title { font-size: 4rem; }
+    .menu-header h2 { font-size: 2rem; }
+    .grid-container { grid-template-columns: 1fr; }
+
+    /* Layout del Juego: Vertical en vez de horizontal */
+    .game-body {
+        flex-direction: column;
+    }
+
+    /* Barra de jugadores: Abajo y con scroll horizontal */
+    .players-sidebar {
+        width: 100%;
+        height: auto;
+        min-height: 110px;
+        max-height: 130px;
+        flex-direction: row; /* Jugadores en fila */
+        overflow-x: auto; /* Scroll lateral */
+        overflow-y: hidden;
+        border-right: none;
+        border-top: 2px solid #00ffff; /* Separador visual claro */
+        order: 2; /* Mover al final (abajo) */
+        padding: 10px;
+        gap: 10px;
+        background: #151525;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    }
+
+    .sidebar-player-card {
+        min-width: 100px;
+        max-width: 120px;
+        flex-direction: column; /* Nombre arriba, puntos abajo */
+        justify-content: center;
+        text-align: center;
+        padding: 5px;
+    }
+
+    .sidebar-player-name {
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        display: block;
+    }
+
+    /* Área de juego: Arriba y ancho completo */
+    .game-main-area {
+        order: 1;
+        width: 100%;
+        padding: 15px;
+        overflow-y: auto;
+    }
+
+    /* Quiz: Botones en una columna para facilitar el toque */
+    .quiz-options-list {
+        grid-template-columns: 1fr;
+    }
 }
