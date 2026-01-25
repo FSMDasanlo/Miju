@@ -81,9 +81,10 @@ body {
 .menu-header h2 {
     font-size: 3rem;
     margin-bottom: 2rem;
-    color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
     letter-spacing: 15px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
 }
 
 .grid-container {
@@ -268,6 +269,20 @@ input[type="text"], input[type="number"] {
 .form-group select, .form-group textarea {
     width: 100%;
     padding: 10px;
+    background: #1a1a2e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: white;
+}
+
+/* Caja de texto de la pregunta más amplia para editar cómodamente */
+#q-text {
+    width: 100%;
+    min-height: 150px; /* Un poco menos, 180 era mucho */
+    padding: 15px;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    resize: vertical;
     background: #1a1a2e;
     border: 1px solid #333;
     border-radius: 5px;
@@ -548,8 +563,8 @@ input[type="text"], input[type="number"] {
 /* --- ESTADÍSTICAS EN MODAL --- */
 .modal-stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
     margin-bottom: 1.5rem;
     background: rgba(0, 0, 0, 0.3);
     padding: 15px;
@@ -926,4 +941,85 @@ input[type="text"], input[type="number"] {
     .quiz-options-list {
         grid-template-columns: 1fr;
     }
+}
+
+/* --- NUEVOS ESTILOS FORMULARIO CREACIÓN --- */
+.form-section-title {
+    color: #00ffff;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 0 10px 0;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    padding-bottom: 5px;
+}
+
+.info-box {
+    background: rgba(0, 255, 255, 0.05);
+    border-left: 3px solid #00ffff;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    color: #aaa;
+    line-height: 1.4;
+}
+
+.info-box strong { color: #fff; }
+
+/* Interruptores (Toggles) */
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider { background-color: #00ffff; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* Pantalla de Pausa */
+#pause-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500;
+    backdrop-filter: blur(5px);
 }

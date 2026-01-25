@@ -34,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalDate = document.getElementById('modal-date');
     const modalTime = document.getElementById('modal-time');
     const modalQuestionsQty = document.getElementById('modal-questions-qty');
+    const modalPlayerQRule = document.getElementById('modal-player-q-rule');
+    const modalSubtractRule = document.getElementById('modal-subtract-rule');
+    const modalPausesBox = document.getElementById('modal-pauses-box');
+    const modalPausesQty = document.getElementById('modal-pauses-qty');
     const modalPlayersList = document.getElementById('modal-players-list');
     const modalPlayersCount = document.getElementById('modal-players-count');
     const modalObs = document.getElementById('modal-obs');
@@ -81,12 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Manejo seguro de la fecha por si acaso viene nula (latencia de servidor)
                 const date = game.fechaCreacion ? game.fechaCreacion.toDate().toLocaleDateString() : 'Procesando...';
                 
+                // Añadir icono si es partida larga
+                const longMatchIcon = game.partidaLarga ? '<span title="Partida Larga (Maratón)">🏆</span> ' : '';
+
                 // Crear tarjeta de partida
                 const card = document.createElement('div');
                 card.className = `game-card status-${game.estado}`;
                 card.innerHTML = `
                     <div class="game-card-header">
-                        <span class="game-ref">${game.referencia}</span>
+                        <span class="game-ref">${longMatchIcon}${game.referencia}</span>
                         <span class="status-dot" title="${game.estado}"></span>
                     </div>
                     <div class="game-card-info">
@@ -124,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             estado: 'Abierta', // Forzamos estado abierta
                             tiempoPregunta: game.tiempoPregunta || 10,
                             cantidadPreguntas: game.cantidadPreguntas || 10,
+                            preguntasPorJugador: game.preguntasPorJugador || false,
+                            erroresRestan: game.erroresRestan || false,
                             observaciones: game.observaciones || '',
                             fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
                             jugadores: cleanPlayers
@@ -143,11 +152,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     // Rellenar formulario
                     document.getElementById('game-ref').value = game.referencia;
-                    document.getElementById('game-status').value = game.estado;
                     document.getElementById('game-time').value = game.tiempoPregunta || 10;
                     document.getElementById('game-questions-qty').value = game.cantidadPreguntas || 10;
                     document.getElementById('game-obs').value = game.observaciones || '';
+                    document.getElementById('game-player-questions').checked = game.preguntasPorJugador || false;
+                    document.getElementById('game-subtract-errors').checked = game.erroresRestan || false;
+                    document.getElementById('game-long-match').checked = game.partidaLarga || false;
+                    
                     editGameIdInput.value = game.id;
+                    // Guardamos el estado actual en el dataset para no perderlo al guardar
+                    editGameIdInput.dataset.currentStatus = game.estado;
 
                     // Cambiar interfaz a modo edición
                     document.querySelector('#create-game-container h2').textContent = "Editar Partida";
@@ -214,6 +228,17 @@ document.addEventListener('DOMContentLoaded', () => {
         modalDate.textContent = game.fechaCreacion ? game.fechaCreacion.toDate().toLocaleString() : 'Pendiente';
         modalTime.textContent = (game.tiempoPregunta || 10) + ' seg';
         modalQuestionsQty.textContent = (game.cantidadPreguntas || 10);
+        modalPlayerQRule.textContent = game.preguntasPorJugador ? 'SÍ' : 'NO';
+        modalSubtractRule.textContent = game.erroresRestan ? 'SÍ' : 'NO';
+        
+        // Mostrar pausas si es partida larga
+        if (game.partidaLarga) {
+            modalPausesBox.classList.remove('hidden');
+            modalPausesQty.textContent = game.pausasRestantes !== undefined ? game.pausasRestantes : 3;
+        } else {
+            modalPausesBox.classList.add('hidden');
+        }
+
         modalObs.textContent = game.observaciones || "Sin observaciones.";
         
         // Reseteamos la vista del QR cada vez que abrimos el modal
@@ -306,13 +331,35 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const editId = editGameIdInput.value;
+        let questionsQty = parseInt(document.getElementById('game-questions-qty').value) || 10;
+        const isLongMatch = document.getElementById('game-long-match').checked;
+
+        // Validación Partida Larga
+        if (isLongMatch && questionsQty < 50) {
+            if (confirm("⚠️ Una Partida Larga requiere mínimo 50 preguntas.\n\n¿Quieres ajustar la cantidad a 50 automáticamente?")) {
+                questionsQty = 50;
+                document.getElementById('game-questions-qty').value = 50;
+            } else {
+                return; // Cancelar creación
+            }
+        }
+
         const gameData = {
             referencia: document.getElementById('game-ref').value,
-            estado: document.getElementById('game-status').value,
+            // Si editamos, mantenemos el estado. Si es nueva, siempre 'Abierta'.
+            estado: editId ? editGameIdInput.dataset.currentStatus : 'Abierta',
             tiempoPregunta: parseInt(document.getElementById('game-time').value) || 10,
-            cantidadPreguntas: parseInt(document.getElementById('game-questions-qty').value) || 10,
-            observaciones: document.getElementById('game-obs').value
+            cantidadPreguntas: questionsQty,
+            observaciones: document.getElementById('game-obs').value,
+            preguntasPorJugador: document.getElementById('game-player-questions').checked,
+            erroresRestan: document.getElementById('game-subtract-errors').checked,
+            partidaLarga: isLongMatch
         };
+
+        // Si es partida larga y nueva, asignamos pausas
+        if (isLongMatch && !editId) {
+            gameData.pausasRestantes = 3;
+        }
 
         try {
             if (editId) {
