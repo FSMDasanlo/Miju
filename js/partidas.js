@@ -319,6 +319,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             await gamesCollection.doc(currentModalGameId).update({
                                 jugadores: firebase.firestore.FieldValue.arrayRemove(player)
                             });
+
+                            // --- CORRECCIÓN: Comprobar si hay que cerrar la partida tras borrar al jugador ---
+                            const updatedDoc = await gamesCollection.doc(currentModalGameId).get();
+                            if (updatedDoc.exists) {
+                                const gData = updatedDoc.data();
+                                const remainingPlayers = gData.jugadores || [];
+                                const totalQs = gData.cantidadPreguntas || (gData.preguntas ? gData.preguntas.length : 0);
+
+                                // Si quedan jugadores, la partida está 'Jugando' y todos han terminado -> CERRAR
+                                if (remainingPlayers.length > 0 && gData.estado === 'Jugando' && totalQs > 0) {
+                                    const allFinished = remainingPlayers.every(p => {
+                                        const answers = (typeof p === 'object' ? p.respuestas : 0) || 0;
+                                        return answers >= totalQs;
+                                    });
+                                    if (allFinished) {
+                                        await gamesCollection.doc(currentModalGameId).update({ estado: 'Cerrada' });
+                                    }
+                                }
+                            }
+                            // ---------------------------------------------------------------------------------
+
                             refreshModal(); // Recargar datos del modal
                         } catch (error) {
                             console.error("Error al eliminar:", error);
