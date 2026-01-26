@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const newGame = {
                             referencia: `${game.referencia} (Copia)`,
                             estado: 'Abierta', // Forzamos estado abierta
-                            tiempoPregunta: game.tiempoPregunta || 10,
+                            tiempoPregunta: game.tiempoPregunta || 15,
                             cantidadPreguntas: game.cantidadPreguntas || 10,
                             preguntasPorJugador: game.preguntasPorJugador || false,
                             erroresRestan: game.erroresRestan || false,
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     // Rellenar formulario
                     document.getElementById('game-ref').value = game.referencia;
-                    document.getElementById('game-time').value = game.tiempoPregunta || 10;
+                    document.getElementById('game-time').value = game.tiempoPregunta || 15;
                     document.getElementById('game-questions-qty').value = game.cantidadPreguntas || 10;
                     document.getElementById('game-obs').value = game.observaciones || '';
                     document.getElementById('game-player-questions').checked = game.preguntasPorJugador || false;
@@ -164,11 +164,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     editGameIdInput.dataset.currentStatus = game.estado;
 
                     // Cambiar interfaz a modo edición
-                    document.querySelector('#create-game-container h2').textContent = "Editar Partida";
-                    document.querySelector('#create-game-form button[type="submit"]').textContent = "Guardar Cambios";
+                    document.getElementById('create-form-title').textContent = "Editar Partida";
+                    document.getElementById('create-game-submit-btn').textContent = "Guardar Cambios";
                     
-                    createContainer.classList.remove('hidden');
                     btnShowCreate.classList.add('hidden');
+                    createContainer.classList.remove('hidden');
+                    
+                    // Aplicar animación de entrada
+                    createContainer.animate([
+                        { opacity: 0, transform: 'translateY(-20px)' },
+                        { opacity: 1, transform: 'translateY(0)' }
+                    ], {
+                        duration: 400,
+                        easing: 'ease-out'
+                    });
+
                     createContainer.scrollIntoView({ behavior: 'smooth' });
                 });
 
@@ -226,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalRef.textContent = game.referencia;
         modalStatus.textContent = game.estado;
         modalDate.textContent = game.fechaCreacion ? game.fechaCreacion.toDate().toLocaleString() : 'Pendiente';
-        modalTime.textContent = (game.tiempoPregunta || 10) + ' seg';
+        modalTime.textContent = (game.tiempoPregunta || 15) + ' seg';
         modalQuestionsQty.textContent = (game.cantidadPreguntas || 10);
         modalPlayerQRule.textContent = game.preguntasPorJugador ? 'SÍ' : 'NO';
         modalSubtractRule.textContent = game.erroresRestan ? 'SÍ' : 'NO';
@@ -311,8 +321,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mostrar/Ocultar formulario
     btnShowCreate.addEventListener('click', () => {
-        createContainer.classList.remove('hidden');
         btnShowCreate.classList.add('hidden');
+        createContainer.classList.remove('hidden');
+        // Aplicar animación de entrada
+        createContainer.animate([
+            { opacity: 0, transform: 'translateY(-20px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+        ], {
+            duration: 400,
+            easing: 'ease-out'
+        });
     });
 
     btnCancelCreate.addEventListener('click', () => {
@@ -322,8 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Resetear formulario y modo edición
         createForm.reset();
         editGameIdInput.value = '';
-        document.querySelector('#create-game-container h2').textContent = "Configurar Nueva Partida";
-        document.querySelector('#create-game-form button[type="submit"]').textContent = "Crear Partida";
+        document.getElementById('create-form-title').textContent = "Configurar Nueva Partida";
+        document.getElementById('create-game-submit-btn').textContent = "Crear Partida";
     });
 
     // Crear o Editar Partida
@@ -348,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
             referencia: document.getElementById('game-ref').value,
             // Si editamos, mantenemos el estado. Si es nueva, siempre 'Abierta'.
             estado: editId ? editGameIdInput.dataset.currentStatus : 'Abierta',
-            tiempoPregunta: parseInt(document.getElementById('game-time').value) || 10,
+            tiempoPregunta: parseInt(document.getElementById('game-time').value) || 15,
             cantidadPreguntas: questionsQty,
             observaciones: document.getElementById('game-obs').value,
             preguntasPorJugador: document.getElementById('game-player-questions').checked,
@@ -377,8 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             createForm.reset();
             editGameIdInput.value = '';
-            document.querySelector('#create-game-container h2').textContent = "Configurar Nueva Partida";
-            document.querySelector('#create-game-form button[type="submit"]').textContent = "Crear Partida";
+            document.getElementById('create-form-title').textContent = "Configurar Nueva Partida";
+            document.getElementById('create-game-submit-btn').textContent = "Crear Partida";
             
             createContainer.classList.add('hidden');
             btnShowCreate.classList.remove('hidden');

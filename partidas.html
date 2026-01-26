@@ -19,68 +19,91 @@
             <button id="btn-show-create" class="btn action-btn">+ NUEVA PARTIDA</button>
 
             <!-- Formulario de creación (Inicialmente oculto) -->
-            <div id="create-game-container" class="form-container hidden">
-                <h2>Configurar Nueva Partida</h2>
+            <div id="create-game-container" class="form-container hidden" style="background: transparent; border: none; padding: 0;">
+                <h2 id="create-form-title">Configurar Nueva Partida</h2>
                 <form id="create-game-form">
                     <input type="hidden" id="edit-game-id">
-                    
-                    <div class="form-group">
-                        <label style="color: #00ffff; font-size: 0.9rem;">Nombre de la Partida</label>
-                        <input type="text" id="game-ref" placeholder="Ej: Torneo Viernes Noche" required autocomplete="off" style="font-size: 1.2rem; font-weight: bold;">
-                    </div>
 
-                    <div class="form-section-title">⚙️ Configuración Básica</div>
-                    
-                    <div class="form-group" style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label for="game-time" style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.8rem;">TIEMPO / PREGUNTA</label>
-                            <input type="number" id="game-time" value="10" min="5" style="width: 100%;">
+                    <div class="create-form-grid">
+                        <!-- Panel 1: Datos Generales -->
+                        <div class="form-panel">
+                            <div class="form-panel-header">
+                                <span class="panel-icon">📝</span>
+                                <h3>Datos Generales</h3>
+                            </div>
+                            <div class="form-panel-body">
+                                <div class="form-group">
+                                    <label for="game-ref">Nombre de la Partida</label>
+                                    <input type="text" id="game-ref" placeholder="Ej: Torneo Viernes Noche" required autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label for="game-obs">Observaciones (Opcional)</label>
+                                    <textarea id="game-obs" placeholder="Cualquier nota o descripción..." rows="4"></textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div style="flex: 1;">
-                            <label for="game-questions-qty" style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.8rem;">Nº PREGUNTAS</label>
-                            <input type="number" id="game-questions-qty" value="10" min="1" style="width: 100%;">
+
+                        <!-- Panel 2: Configuración -->
+                        <div class="form-panel">
+                            <div class="form-panel-header">
+                                <span class="panel-icon">⚙️</span>
+                                <h3>Configuración</h3>
+                            </div>
+                            <div class="form-panel-body">
+                                <div class="form-group">
+                                    <label for="game-time">Tiempo por Pregunta (segundos)</label>
+                                    <input type="number" id="game-time" value="15" min="5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="game-questions-qty">Número de Preguntas</label>
+                                    <input type="number" id="game-questions-qty" value="10" min="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel 3: Reglas de Juego -->
+                        <div class="form-panel">
+                            <div class="form-panel-header">
+                                <span class="panel-icon">🎮</span>
+                                <h3>Reglas de Juego</h3>
+                            </div>
+                            <div class="form-panel-body">
+                                <div class="toggle-row">
+                                    <label for="game-player-questions" class="toggle-label">
+                                        <strong>Jugadores añaden pregunta</strong>
+                                        <small>Cada participante debe crear una pregunta para poder empezar.</small>
+                                    </label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="game-player-questions">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-row">
+                                    <label for="game-subtract-errors" class="toggle-label">
+                                        <strong>Errores restan puntos</strong>
+                                        <small>Los fallos restarán 1 punto (mínimo 0).</small>
+                                    </label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="game-subtract-errors">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-row marathon-toggle">
+                                    <label for="game-long-match" class="toggle-label">
+                                        <strong>🏆 Partida Larga (Maratón)</strong>
+                                        <small>+50 preguntas y 3 pausas disponibles.</small>
+                                    </label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="game-long-match">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-section-title">🎮 Reglas de Juego</div>
-
-                    <div class="toggle-row">
-                        <label for="game-player-questions" style="cursor: pointer; flex: 1;">¿Jugadores añaden pregunta?</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="game-player-questions">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="toggle-row">
-                        <label for="game-subtract-errors" style="cursor: pointer; flex: 1;">¿Errores restan puntos?</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="game-subtract-errors">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="info-box">
-                        ℹ️ <strong>Puntuación:</strong> Acierto = +1 punto. <br>
-                        Si activas "Errores restan", el fallo será <strong>-1 punto</strong>.
-                    </div>
-
-                    <div class="toggle-row" style="border-color: #ffd700;">
-                        <label for="game-long-match" style="cursor: pointer; flex: 1; color: #ffd700;">🏆 Partida Larga (Maratón)</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="game-long-match">
-                            <span class="slider" style="background-color: #554400;"></span>
-                        </label>
-                    </div>
-                    <p style="font-size: 0.8rem; color: #666; margin-top: -5px; margin-bottom: 15px; padding-left: 15px;">
-                        Requiere +50 preguntas. Permite 3 pausas durante el juego.
-                    </p>
-
-                    <div class="form-group">
-                        <textarea id="game-obs" placeholder="Observaciones (Opcional)" rows="2"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn">Crear Partida</button>
+                    <div class="form-actions-footer">
+                        <button type="submit" id="create-game-submit-btn" class="btn action-btn">Crear Partida</button>
                         <button type="button" id="btn-cancel-create" class="btn btn-secondary">Cancelar</button>
                     </div>
                 </form>
