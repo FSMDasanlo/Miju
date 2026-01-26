@@ -152,12 +152,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     // Rellenar formulario
                     document.getElementById('game-ref').value = game.referencia;
-                    document.getElementById('game-time').value = game.tiempoPregunta || 15;
+                    document.getElementById('game-time').value = game.tiempoPregunta || 20;
                     document.getElementById('game-questions-qty').value = game.cantidadPreguntas || 10;
                     document.getElementById('game-obs').value = game.observaciones || '';
                     document.getElementById('game-player-questions').checked = game.preguntasPorJugador || false;
                     document.getElementById('game-subtract-errors').checked = game.erroresRestan || false;
                     document.getElementById('game-long-match').checked = game.partidaLarga || false;
+                    
+                    // Gestión de comodines (compatibilidad con booleanos antiguos)
+                    let has50 = true;
+                    let hasHint = true;
+                    if (typeof game.comodines === 'object' && game.comodines !== null) {
+                        has50 = game.comodines.cincuenta;
+                        hasHint = game.comodines.pista;
+                    } else if (typeof game.comodines === 'boolean') {
+                        has50 = game.comodines;
+                        hasHint = game.comodines;
+                    } else if (game.comodines === undefined) {
+                        has50 = false;
+                        hasHint = false;
+                    }
+                    document.getElementById('game-wildcard-50').checked = has50;
+                    document.getElementById('game-wildcard-hint').checked = hasHint;
                     
                     editGameIdInput.value = game.id;
                     // Guardamos el estado actual en el dataset para no perderlo al guardar
@@ -241,6 +257,26 @@ document.addEventListener('DOMContentLoaded', () => {
         modalPlayerQRule.textContent = game.preguntasPorJugador ? 'SÍ' : 'NO';
         modalSubtractRule.textContent = game.erroresRestan ? 'SÍ' : 'NO';
         
+        // Mostrar comodines
+        const wildcardsBox = document.getElementById('modal-wildcards-box');
+        const wildcardsRule = document.getElementById('modal-wildcards-rule');
+        
+        let wText = 'NO';
+        if (game.comodines) {
+            if (typeof game.comodines === 'object') {
+                const arr = [];
+                if (game.comodines.cincuenta) arr.push('50%');
+                if (game.comodines.pista) arr.push('💡');
+                wText = arr.length > 0 ? arr.join(' + ') : 'NO';
+            } else {
+                wText = 'SÍ (Todos)';
+            }
+        }
+        wildcardsRule.textContent = wText;
+        
+        // Siempre visible para saber si están activos o no
+        wildcardsBox.classList.remove('hidden');
+
         // Mostrar pausas si es partida larga
         if (game.partidaLarga) {
             modalPausesBox.classList.remove('hidden');
@@ -366,12 +402,16 @@ document.addEventListener('DOMContentLoaded', () => {
             referencia: document.getElementById('game-ref').value,
             // Si editamos, mantenemos el estado. Si es nueva, siempre 'Abierta'.
             estado: editId ? editGameIdInput.dataset.currentStatus : 'Abierta',
-            tiempoPregunta: parseInt(document.getElementById('game-time').value) || 15,
+            tiempoPregunta: parseInt(document.getElementById('game-time').value) || 20,
             cantidadPreguntas: questionsQty,
             observaciones: document.getElementById('game-obs').value,
             preguntasPorJugador: document.getElementById('game-player-questions').checked,
             erroresRestan: document.getElementById('game-subtract-errors').checked,
-            partidaLarga: isLongMatch
+            partidaLarga: isLongMatch,
+            comodines: {
+                cincuenta: document.getElementById('game-wildcard-50').checked,
+                pista: document.getElementById('game-wildcard-hint').checked
+            }
         };
 
         // Si es partida larga y nueva, asignamos pausas

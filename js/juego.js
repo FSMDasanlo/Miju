@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnStartQuiz = document.getElementById('btn-start-quiz');
     const addQuestionModal = document.getElementById('add-question-modal');
     const closeQuestionModal = document.getElementById('close-question-modal');
+    const wildcardsContainer = document.getElementById('wildcards-container');
     const questionForm = document.getElementById('question-form');
     const quizInterface = document.getElementById('quiz-interface');
     const resultsScreen = document.getElementById('results-screen');
@@ -360,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         quizInterface.innerHTML = `
+            <div id="wildcards-container" class="wildcards-container"></div>
             <div class="question-card">
                 <div class="timer-container">
                     <div id="timer-bar" class="timer-fill"></div>
@@ -369,8 +371,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="quiz-options-list">
                     ${optionsHtml}
                 </div>
+                <div id="hint-box" class="hint-box hidden"></div>
             </div>
         `;
+
+        // Recuperamos el contenedor fresco del DOM
+        const activeWildcardsContainer = document.getElementById('wildcards-container');
+
+        // --- LÓGICA DE COMODINES ---
+        let enable50 = false;
+        let enableHint = false;
+        
+        if (gameConfig.comodines) {
+            if (typeof gameConfig.comodines === 'object') {
+                enable50 = gameConfig.comodines.cincuenta;
+                enableHint = gameConfig.comodines.pista;
+            } else {
+                // Compatibilidad con partidas antiguas (boolean)
+                enable50 = true;
+                enableHint = true;
+            }
+        }
+
+        if (enable50 || enableHint) {
+            const me = (gameConfig.jugadores || []).find(p => (typeof p === 'object' ? p.name : p) === currentPlayerName);
+            const usedWildcards = (me && me.comodines) || { cincuenta: false, pista: false };
+
+            // Crear y añadir botón 50%
+            if (enable50) {
+                const btn50 = document.createElement('button');
+                btn50.id = 'wildcard-50';
+                btn50.className = 'wildcard-btn';
+                btn50.title = 'Elimina 2 respuestas incorrectas';
+                btn50.innerHTML = '50%';
+                btn50.disabled = usedWildcards.cincuenta;
+                btn50.addEventListener('click', useWildcard50);
+                activeWildcardsContainer.appendChild(btn50);
+            }
+
+            // Crear y añadir botón Pista
+            if (enableHint) {
+                const btnHint = document.createElement('button');
+                btnHint.id = 'wildcard-hint';
+                btnHint.className = 'wildcard-btn';
+                btnHint.title = 'Muestra una pista para la pregunta';
+                btnHint.innerHTML = '💡 Pista';
+                btnHint.disabled = usedWildcards.pista;
+                btnHint.addEventListener('click', useWildcardHint);
+                activeWildcardsContainer.appendChild(btnHint);
+            }
+        }
 
         // --- LÓGICA DEL TEMPORIZADOR ---
         const timerBar = document.getElementById('timer-bar');
@@ -519,6 +569,90 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error("Error actualizando puntuación:", error);
+        }
+    };
+
+    // 7. Lógica de Comodines
+    const useWildcard50 = async () => {
+        const btn50 = document.getElementById('wildcard-50');
+        if (btn50) btn50.disabled = true;
+
+        const question = currentQuestions[currentQuestionIndex];
+        const correctIndex = question.correcta;
+        const optionsBtns = document.querySelectorAll('.quiz-option-btn');
+
+        const incorrectOptions = [];
+        optionsBtns.forEach((btn) => {
+            if (parseInt(btn.dataset.index) !== correctIndex) {
+                incorrectOptions.push(btn);
+            }
+        });
+
+        // Mezclar y ocultar dos
+        incorrectOptions.sort(() => Math.random() - 0.5);
+        
+        // Aplicar estilo de deshabilitado en lugar de ocultar
+        if (incorrectOptions[0]) incorrectOptions[0].classList.add('disabled-option');
+        if (incorrectOptions[1]) incorrectOptions[1].classList.add('disabled-option');
+
+        // Actualizar en BD
+        const gameRef = db.collection('partidas').doc(gameId);
+        try {
+            await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(gameRef);
+                if (!doc.exists) throw "Partida no existe";
+
+                const players = doc.data().jugadores || [];
+                const playerIndex = players.findIndex(p => (typeof p === 'object' ? p.name : p) === currentPlayerName);
+
+                if (playerIndex !== -1) {
+                    if (typeof players[playerIndex] !== 'object') players[playerIndex] = { name: players[playerIndex] };
+                    if (!players[playerIndex].comodines) players[playerIndex].comodines = { cincuenta: false, pista: false };
+                    
+                    players[playerIndex].comodines.cincuenta = true;
+                    transaction.update(gameRef, { jugadores: players });
+                }
+            });
+        } catch (error) {
+            console.error("Error guardando comodín 50%:", error);
+        }
+    };
+
+    const useWildcardHint = async () => {
+        const btnHint = document.getElementById('wildcard-hint');
+        if (btnHint) btnHint.disabled = true;
+
+        const question = currentQuestions[currentQuestionIndex];
+        const hintBox = document.getElementById('hint-box');
+        
+        if (question.pista && question.pista.trim() !== '') {
+            if (hintBox) {
+                hintBox.innerHTML = `<strong>💡 PISTA:</strong><br>${question.pista}`;
+                hintBox.classList.remove('hidden');
+            }
+        } else {
+            alert("Lo sentimos, no hay pista disponible para esta pregunta.");
+        }
+
+        // Actualizar en BD
+        const gameRef = db.collection('partidas').doc(gameId);
+        try {
+            await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(gameRef);
+                if (!doc.exists) throw "Partida no existe";
+
+                const players = doc.data().jugadores || [];
+                const playerIndex = players.findIndex(p => (typeof p === 'object' ? p.name : p) === currentPlayerName);
+
+                if (playerIndex !== -1) {
+                    if (typeof players[playerIndex] !== 'object') players[playerIndex] = { name: players[playerIndex] };
+                    if (!players[playerIndex].comodines) players[playerIndex].comodines = { cincuenta: false, pista: false };
+                    players[playerIndex].comodines.pista = true;
+                    transaction.update(gameRef, { jugadores: players });
+                }
+            });
+        } catch (error) {
+            console.error("Error guardando comodín pista:", error);
         }
     };
 

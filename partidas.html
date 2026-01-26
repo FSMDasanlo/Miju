@@ -52,7 +52,7 @@
                             <div class="form-panel-body">
                                 <div class="form-group">
                                     <label for="game-time">Tiempo por Pregunta (segundos)</label>
-                                    <input type="number" id="game-time" value="15" min="5">
+                                    <input type="number" id="game-time" value="20" min="5">
                                 </div>
                                 <div class="form-group">
                                     <label for="game-questions-qty">Número de Preguntas</label>
@@ -95,6 +95,36 @@
                                     </label>
                                     <label class="toggle-switch">
                                         <input type="checkbox" id="game-long-match">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel 4: Comodines -->
+                        <div class="form-panel">
+                            <div class="form-panel-header">
+                                <span class="panel-icon">🃏</span>
+                                <h3>Comodines</h3>
+                            </div>
+                            <div class="form-panel-body">
+                                <div class="toggle-row">
+                                    <label for="game-wildcard-50" class="toggle-label">
+                                        <strong>50%</strong>
+                                        <small>Elimina 2 respuestas incorrectas.</small>
+                                    </label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="game-wildcard-50" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-row">
+                                    <label for="game-wildcard-hint" class="toggle-label">
+                                        <strong>💡 Pista</strong>
+                                        <small>Muestra una ayuda para la pregunta.</small>
+                                    </label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="game-wildcard-hint" checked>
                                         <span class="slider"></span>
                                     </label>
                                 </div>
@@ -154,6 +184,10 @@
                 <div class="stat-box">
                     <span class="stat-label">Errores Restan</span>
                     <span id="modal-subtract-rule" class="stat-value">--</span>
+                </div>
+                <div class="stat-box hidden" id="modal-wildcards-box">
+                    <span class="stat-label">🃏 Comodines</span>
+                    <span id="modal-wildcards-rule" class="stat-value">--</span>
                 </div>
                 <div class="stat-box hidden" id="modal-pauses-box">
                     <span class="stat-label">Pausas Rest.</span>

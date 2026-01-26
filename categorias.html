@@ -21,10 +21,14 @@
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <!-- 1. Subida Masiva -->
                     <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
-                        <h3>1. Subida Masiva (.txt)</h3>
-                            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 10px;">Sube preguntas de un archivo .txt.</p>
+                        <h3>1. Gestión de Archivos (.txt)</h3>
+                            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 10px;">Importar o descargar preguntas.</p>
                         <input type="file" id="file-upload" accept=".txt" class="hidden">
-                        <button id="btn-mass-upload" class="btn action-btn" style="margin-bottom: 0;">📂 Seleccionar Archivo</button>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-mass-upload" class="btn action-btn" style="margin-bottom: 0; flex: 1;">📂 Subir</button>
+                            <button id="btn-download-all" class="btn action-btn" style="margin-bottom: 0; flex: 1; background: linear-gradient(90deg, #6c757d, #495057); color: white;">⬇️ Descargar</button>
+                        </div>
+                        <button id="btn-delete-all" class="btn action-btn" style="margin-top: 10px; background: linear-gradient(90deg, #ff4444, #cc0000); color: white;">🗑️ Borrar TODAS las preguntas</button>
                     </div>
 
                     <!-- 2. Subida Individual -->
@@ -60,6 +64,9 @@
             <form id="question-form">
                 <div class="form-group">
                     <textarea id="q-text" placeholder="Escribe tu pregunta..." required rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <textarea id="q-hint" placeholder="Pista (opcional)..." rows="2" style="width: 100%; padding: 10px; background: #1a1a2e; border: 1px solid #333; border-radius: 5px; color: #ffcc00;"></textarea>
                 </div>
                 <div class="options-grid">
                     <!-- Generamos 4 inputs para opciones -->

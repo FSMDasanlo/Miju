@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- REFERENCIAS DOM ---
     const btnMassUpload = document.getElementById('btn-mass-upload');
     const fileUpload = document.getElementById('file-upload');
+    const btnDownloadAll = document.getElementById('btn-download-all');
+    const btnDeleteAll = document.getElementById('btn-delete-all');
     const btnAddSingle = document.getElementById('btn-add-single');
     const questionsList = document.getElementById('questions-list');
     const questionsCount = document.getElementById('questions-count');
@@ -72,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="font-size: 0.85rem; color: #aaa;">
                             Correcta: <span style="color: #00ff00;">${q.opciones[q.correcta]}</span> | Autor: ${q.autor}
                         </div>
+                        ${q.pista ? `<div style="font-size: 0.85rem; color: #ffcc00; margin-top: 4px; font-style: italic;">Pista: ${q.pista}</div>` : ''}
                     </div>
                     <div style="display: flex; gap: 5px;">
                         <button class="btn-icon-small btn-edit" title="Editar">✏️</button>
@@ -83,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.querySelector('.btn-edit').addEventListener('click', () => {
                     currentEditingId = q.id;
                     document.getElementById('q-text').value = q.texto;
+                    document.getElementById('q-hint').value = q.pista || '';
                     const inputs = document.querySelectorAll('.opt-text');
                     q.opciones.forEach((opt, i) => {
                         if(inputs[i]) inputs[i].value = opt;
@@ -112,6 +116,79 @@ document.addEventListener('DOMContentLoaded', () => {
     // Filtro de búsqueda
     searchFilter.addEventListener('input', displayQuestionsList);
 
+    // 3. Descargar todas las preguntas
+    if (btnDownloadAll) {
+        btnDownloadAll.addEventListener('click', () => {
+            if (loadedQuestions.length === 0) {
+                alert("No hay preguntas para descargar.");
+                return;
+            }
+
+            let fileContent = '';
+            // Ordenamos alfabéticamente para que el fichero sea más organizado
+            const sortedQuestions = [...loadedQuestions].sort((a, b) => a.texto.localeCompare(b.texto));
+
+            sortedQuestions.forEach((q, index) => {
+                fileContent += `${index + 1}. ${q.texto}\n`;
+                const optionLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+                
+                if (q.opciones && Array.isArray(q.opciones)) {
+                    q.opciones.forEach((opt, i) => {
+                        const isCorrect = i === q.correcta;
+                        const letter = optionLetters[i] || String.fromCharCode(65 + i);
+                        fileContent += `   ${letter}) ${opt}${isCorrect ? ' ✅' : ''}\n`;
+                    });
+                }
+                if (q.pista && q.pista.trim() !== '') {
+                    fileContent += `Pista: ${q.pista}\n`;
+                }
+                fileContent += '\n'; // Espacio entre preguntas
+            });
+
+            const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'banco_preguntas.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // 4. Borrar TODAS las preguntas
+    if (btnDeleteAll) {
+        btnDeleteAll.addEventListener('click', async () => {
+            if (loadedQuestions.length === 0) return alert("No hay preguntas para borrar.");
+            
+            if (!confirm("⚠️ ¡PELIGRO! ⚠️\n\n¿Estás seguro de que quieres BORRAR TODAS las preguntas?\n\nEsta acción no se puede deshacer.")) return;
+            if (!confirm(`Se van a eliminar ${loadedQuestions.length} preguntas permanentemente.\n\n¿Confirmar borrado total?`)) return;
+
+            try {
+                // Firestore permite batches de hasta 500 operaciones.
+                // Como tenemos más de 800, lo hacemos en trozos (chunks).
+                const chunkSize = 400;
+                const chunks = [];
+                for (let i = 0; i < loadedQuestions.length; i += chunkSize) {
+                    chunks.push(loadedQuestions.slice(i, i + chunkSize));
+                }
+
+                for (const chunk of chunks) {
+                    const batch = db.batch();
+                    chunk.forEach(q => batch.delete(questionsCollection.doc(q.id)));
+                    await batch.commit();
+                }
+
+                alert("Base de datos limpiada correctamente.");
+                renderQuestions();
+            } catch (error) {
+                console.error("Error borrando todo:", error);
+                alert("Error al borrar las preguntas: " + error.message);
+            }
+        });
+    }
+
     // 1. Subida Masiva (JSON)
     btnMassUpload.addEventListener('click', () => fileUpload.click());
 
@@ -136,6 +213,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Limpiamos líneas vacías y espacios extra
                     const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l);
                     if (lines.length === 0) return;
+
+                    // Extraer Pista (si existe)
+                    let hintText = '';
+                    const hintIndex = lines.findIndex(l => /^pista:/i.test(l));
+                    if (hintIndex !== -1) {
+                        hintText = lines[hintIndex].replace(/^pista:\s*/i, '').trim();
+                        lines.splice(hintIndex, 1); // La quitamos para que no moleste
+                    }
 
                     // Buscamos dónde empiezan las opciones (A), B), etc.)
                     const firstOptionIndex = lines.findIndex(l => /^[a-d]\)/i.test(l));
@@ -169,7 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             texto: qText,
                             opciones: options,
                             correcta: correctIndex,
-                            autor: 'Admin'
+                            autor: 'Admin',
+                            pista: hintText
                         });
                     }
                 });
@@ -209,12 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
     questionForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = document.getElementById('q-text').value;
+        const hint = document.getElementById('q-hint').value.trim();
         const correctIndex = document.querySelector('input[name="correct-opt"]:checked').value;
         const options = Array.from(document.querySelectorAll('.opt-text')).map(input => input.value);
 
         try {
             const questionData = {
                 texto: text,
+                pista: hint,
                 opciones: options,
                 correcta: parseInt(correctIndex),
                 autor: 'Admin'
