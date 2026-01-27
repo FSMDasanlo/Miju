@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
+    const playersCollection = db.collection('jugadores');
 
     // --- REFERENCIAS DOM ---
     const configBtns = document.querySelectorAll('.btn-memory-opt');
@@ -25,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayArea = document.getElementById('memory-display-area');
     const inputArea = document.getElementById('memory-input-area');
     const btnExitMode = document.getElementById('btn-exit-mode');
+    const playerSelect = document.getElementById('memory-player-select');
+    const scoresPanel = document.getElementById('scores-panel');
 
     // --- ESTADO DEL JUEGO ---
     let currentMode = null;
@@ -33,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLevelIndex = 0; // Índice global de niveles (0, 1, 2...)
     let isInputBlocked = false;
     let isGameActive = false;
+    let currentPlayerId = null;
+    let currentPlayerName = null;
+    let allPlayersData = []; // Para calcular rankings globales
 
     // --- DATOS ---
     const DATA = {
@@ -52,6 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Nota: Si hay 38 imágenes exactas en la carpeta, podríamos ajustar esto. 
     // Por ahora usamos las combinaciones estándar de dominó que coinciden con el patrón dXY.
+
+    // --- INICIALIZACIÓN ---
+    loadPlayers();
 
     // --- EVENTOS CONFIGURACIÓN ---
     configBtns.forEach(btn => {
@@ -78,6 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
             displayArea.textContent = '';
             inputArea.innerHTML = '';
         }
+    });
+
+    playerSelect.addEventListener('change', () => {
+        handlePlayerSelection();
     });
 
     // --- FUNCIONES DEL JUEGO ---
@@ -258,11 +271,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gameOver() {
+        // Calcular puntuación final (Niveles completados)
+        // currentLevelIndex es el nivel que estaba intentando. Si falla, su score es el anterior completado.
+        // Pero como currentLevelIndex empieza en 0, si falla en el 0, score es 0.
+        const finalScore = currentLevelIndex;
+
         isInputBlocked = true;
         displayArea.innerHTML = '<span style="color: #ff0000;">¡Fallaste!</span>';
         
+        // Guardar récord si hay jugador seleccionado
+        if (currentPlayerId && currentMode) {
+            checkAndSaveRecord(finalScore);
+        }
+
         setTimeout(() => {
-            if (confirm(`Fin del juego.\nHas llegado al Nivel ${currentLevelIndex + 1}.\n\n¿Reintentar?`)) {
+            let msg = `Fin del juego.\nHas completado ${finalScore} niveles.`;
+            
+            // Mensaje personalizado si hay récord
+            const currentBest = getPlayerBestScore(currentPlayerId, currentMode);
+            // Nota: getPlayerBestScore devuelve el dato guardado ANTES de este juego, 
+            // pero si acabamos de guardar (checkAndSaveRecord es async pero rápido), 
+            // visualmente ya le habremos avisado.
+            
+            if (confirm(`${msg}\n\n¿Reintentar?`)) {
                 startGame();
             } else {
                 // Volver a config
@@ -271,6 +302,135 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayArea.textContent = '';
             }
         }, 500);
+    }
+
+    // --- GESTIÓN DE JUGADORES Y PUNTUACIONES ---
+
+    async function loadPlayers() {
+        try {
+            const snapshot = await playersCollection.orderBy('name').get();
+            allPlayersData = [];
+            
+            playerSelect.innerHTML = '<option value="">-- Selecciona tu nombre --</option>';
+            
+            snapshot.forEach(doc => {
+                const p = doc.data();
+                p.id = doc.id; // Guardamos ID
+                allPlayersData.push(p);
+                
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = p.name;
+                playerSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error cargando jugadores:", error);
+        }
+    }
+
+    function handlePlayerSelection() {
+        currentPlayerId = playerSelect.value;
+        currentPlayerName = playerSelect.options[playerSelect.selectedIndex].text;
+
+        if (currentPlayerId) {
+            scoresPanel.classList.remove('hidden');
+            updateScoresDisplay();
+        } else {
+            scoresPanel.classList.add('hidden');
+        }
+    }
+
+    function updateScoresDisplay() {
+        if (!currentPlayerId) return;
+
+        // Buscar datos del jugador actual en memoria
+        const playerData = allPlayersData.find(p => p.id === currentPlayerId);
+        const myScores = playerData.memory_scores || {};
+
+        // Calcular mejores globales
+        const globalBests = {
+            numeros: { score: 0, holder: '-' },
+            letras: { score: 0, holder: '-' },
+            fichas: { score: 0, holder: '-' },
+            colores: { score: 0, holder: '-' }
+        };
+
+        allPlayersData.forEach(p => {
+            const s = p.memory_scores || {};
+            for (const mode in globalBests) {
+                if (s[mode] && s[mode] > globalBests[mode].score) {
+                    globalBests[mode].score = s[mode];
+                    globalBests[mode].holder = p.name;
+                }
+            }
+        });
+
+        // Construir HTML
+        let html = `<h3 style="color:#00ffff; margin-bottom:10px; border-bottom:1px solid #555; padding-bottom:5px;">Estadísticas de ${playerData.name}</h3>`;
+        
+        html += `<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; font-size:0.9rem;">
+                    <div style="color:#aaa;">Modalidad</div>
+                    <div style="color:#00ff00; font-weight:bold;">Tu Récord</div>
+                    <div style="color:#ffd700;">Récord Global</div>`;
+
+        const modes = [
+            { key: 'numeros', label: 'Números' },
+            { key: 'letras', label: 'Letras' },
+            { key: 'fichas', label: 'Fichas' },
+            { key: 'colores', label: 'Colores' }
+        ];
+
+        modes.forEach(m => {
+            const myVal = myScores[m.key] || 0;
+            const globalVal = globalBests[m.key].score;
+            const globalHolder = globalBests[m.key].holder;
+            
+            html += `
+                <div style="border-top:1px solid #333; padding-top:5px; margin-top:5px;">${m.label}</div>
+                <div style="border-top:1px solid #333; padding-top:5px; margin-top:5px;">${myVal}</div>
+                <div style="border-top:1px solid #333; padding-top:5px; margin-top:5px;">${globalVal} (${globalHolder})</div>
+            `;
+        });
+
+        html += `</div>`;
+        scoresPanel.innerHTML = html;
+    }
+
+    function getPlayerBestScore(playerId, mode) {
+        const p = allPlayersData.find(x => x.id === playerId);
+        if (p && p.memory_scores) {
+            return p.memory_scores[mode] || 0;
+        }
+        return 0;
+    }
+
+    async function checkAndSaveRecord(score) {
+        const currentBest = getPlayerBestScore(currentPlayerId, currentMode);
+        
+        if (score > currentBest) {
+            // ¡Nuevo Récord!
+            // 1. Actualizar en memoria local para reflejarlo ya
+            const pIndex = allPlayersData.findIndex(x => x.id === currentPlayerId);
+            if (pIndex !== -1) {
+                if (!allPlayersData[pIndex].memory_scores) allPlayersData[pIndex].memory_scores = {};
+                allPlayersData[pIndex].memory_scores[currentMode] = score;
+            }
+
+            // 2. Actualizar UI
+            updateScoresDisplay();
+            
+            // 3. Guardar en Firebase
+            try {
+                // Usamos notación de punto para actualizar solo ese campo del mapa
+                const updateData = {};
+                updateData[`memory_scores.${currentMode}`] = score;
+                
+                await playersCollection.doc(currentPlayerId).update(updateData);
+                alert(`¡ENHORABUENA ${currentPlayerName}!\n\nHas superado tu récord personal en ${currentMode}.\nNueva marca: ${score}`);
+            } catch (error) {
+                console.error("Error guardando récord:", error);
+            }
+        }
     }
 
     function sleep(ms) {

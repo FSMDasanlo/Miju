@@ -18,6 +18,18 @@
             <!-- Panel de Control / Configuración -->
             <div class="form-container">
                 <h2>Configuración del Reto</h2>
+                
+                <!-- Selector de Jugador -->
+                <div style="margin-bottom: 20px;">
+                    <label for="memory-player-select" style="display:block; margin-bottom:5px; color:#aaa;">Jugador:</label>
+                    <select id="memory-player-select" style="width:100%; padding:10px; background:#1a1a2e; color:white; border:1px solid #333; border-radius:5px;">
+                        <option value="">-- Selecciona tu nombre para guardar récords --</option>
+                    </select>
+                </div>
+
+                <!-- Panel de Puntuaciones -->
+                <div id="scores-panel" class="hidden" style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin-bottom:20px; border: 1px solid rgba(0, 255, 255, 0.2);"></div>
+
                 <p style="color: #aaa; margin-bottom: 15px;">Elige el tipo de elementos para memorizar:</p>
                 
                 <div class="memory-controls">

@@ -812,12 +812,13 @@ input[type="text"], input[type="number"] {
     border: 1px solid #aa00ff;
     color: #aa00ff;
     font-weight: bold;
-    font-size: 1rem;
-    width: 100px;
-    height: 40px;
-    border-radius: 20px;
+    font-size: 1.3rem;
+    width: 160px;
+    height: 55px;
+    border-radius: 30px;
     cursor: pointer;
     transition: all 0.3s;
+    box-shadow: 0 0 15px rgba(170, 0, 255, 0.2);
 }
 
 .wildcard-btn:hover:not(:disabled) {

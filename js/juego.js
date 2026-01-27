@@ -366,12 +366,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="timer-container">
                     <div id="timer-bar" class="timer-fill"></div>
                 </div>
-                <p style="color: #aaa; margin-bottom: 10px;">Pregunta ${currentQuestionIndex + 1} de ${currentQuestions.length} (Autor: ${q.autor})</p>
+                <p style="color: #aaa; margin-bottom: 5px;">Pregunta ${currentQuestionIndex + 1} de ${currentQuestions.length}</p>
+                <div id="hint-box" class="hint-box hidden" style="margin-bottom: 15px; margin-top: 5px;"></div>
                 <h2>${q.texto}</h2>
                 <div class="quiz-options-list">
                     ${optionsHtml}
                 </div>
-                <div id="hint-box" class="hint-box hidden"></div>
             </div>
         `;
 
