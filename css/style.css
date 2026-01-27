@@ -1161,6 +1161,121 @@ input:checked + .slider:before { transform: translateX(22px); }
     backdrop-filter: blur(5px);
 }
 
+/* --- ESTILOS JUEGO DE MEMORIA --- */
+
+.memory-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.btn-memory-opt {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #00ffff;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+}
+
+.btn-memory-opt:hover, .btn-memory-opt.active {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+/* Tablero de visualización de secuencia */
+#memory-display-area {
+    font-size: 5rem;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    min-height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Área de entrada (Input) */
+#memory-input-area {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Grids para Números y Letras */
+.input-grid-small {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.btn-input-item {
+    background: #1a1a2e;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 15px;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-input-item:hover {
+    border-color: #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+}
+
+/* Grid para Fichas (Dominó) */
+.input-grid-tokens {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    gap: 5px;
+}
+
+.token-img {
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.token-img:hover {
+    border-color: #00ffff;
+    transform: scale(1.1);
+}
+
+/* Tablero Simón Dice (Colores) */
+.simon-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.simon-btn {
+    height: 120px;
+    border-radius: 15px;
+    border: none;
+    opacity: 0.3;
+    cursor: pointer;
+    transition: opacity 0.1s;
+}
+
+.simon-btn.active, .simon-btn:active {
+    opacity: 1;
+    box-shadow: 0 0 30px currentColor;
+}
+
 .form-actions-footer {
     display: flex;
     justify-content: flex-end;

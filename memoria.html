@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiJu - Retos de Memoria</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Retos de Memoria</h1>
+            <a href="index.html" class="back-link">‹ Volver al Menú</a>
+        </header>
+
+        <main class="content-wrapper">
+            <!-- Panel de Control / Configuración -->
+            <div class="form-container">
+                <h2>Configuración del Reto</h2>
+                <p style="color: #aaa; margin-bottom: 15px;">Elige el tipo de elementos para memorizar:</p>
+                
+                <div class="memory-controls">
+                    <button class="btn-memory-opt" data-mode="numeros">123 Números</button>
+                    <button class="btn-memory-opt" data-mode="letras">ABC Letras</button>
+                    <button class="btn-memory-opt" data-mode="fichas">🀄 Fichas</button>
+                    <button class="btn-memory-opt" data-mode="colores">🎨 Colores</button>
+                </div>
+
+                <div id="start-game-container" class="hidden" style="margin-top: 20px; text-align: center;">
+                    <p id="selected-mode-text" style="color: #00ffff; margin-bottom: 10px; font-weight: bold;"></p>
+                    <button id="btn-start-memory" class="action-btn btn-play">COMENZAR JUEGO</button>
+                </div>
+            </div>
+
+            <!-- Área de Juego -->
+            <div id="game-area" class="list-container hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 id="level-indicator" style="margin-bottom: 0;">Nivel 1</h2>
+                    <button id="btn-exit-mode" class="btn-secondary" style="padding: 5px 15px; border-radius: 5px; cursor: pointer;">Cambiar Modo</button>
+                </div>
+                
+                <!-- Donde aparece la secuencia -->
+                <div id="memory-display-area"></div>
+
+                <!-- Donde el usuario elige -->
+                <div id="memory-input-area">
+                    <!-- Se rellena dinámicamente según el modo -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="js/memoria.js"></script>
+</body>
+</html>
