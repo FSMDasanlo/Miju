@@ -48,6 +48,37 @@ document.addEventListener('DOMContentLoaded', () => {
         fichas: [] // Se generará dinámicamente d00..d66
     };
 
+    // --- AUDIO (SIMÓN DICE) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+    
+    const SOUNDS = {
+        green: 329.63,  // E4
+        red: 261.63,    // C4
+        yellow: 220.00, // A3
+        blue: 164.81    // E3
+    };
+
+    function playSound(color) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.value = SOUNDS[color] || 440;
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        const now = audioCtx.currentTime;
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.5);
+        
+        osc.start(now);
+        osc.stop(now + 0.5);
+    }
+
     // Generar lista de fichas de dominó (00 a 66)
     for (let i = 0; i <= 6; i++) {
         for (let j = i; j <= 6; j++) { // j=i para evitar duplicados inversos si es standard, pero usuario dijo 38 imgs.
@@ -98,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startGame() {
         if (!currentMode) return;
 
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         isGameActive = true;
 
         // Reset
@@ -213,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btn = document.getElementById(`simon-${item}`);
                 if (btn) {
                     btn.classList.add('active');
-                    // Sonido opcional aquí
+                    playSound(item);
                     await sleep(600);
                     if (!isGameActive) return;
                     btn.classList.remove('active');
@@ -246,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentMode === 'colores') {
             const btn = document.getElementById(`simon-${value}`);
             btn.classList.add('active');
+            playSound(value);
             setTimeout(() => btn.classList.remove('active'), 200);
         }
 
