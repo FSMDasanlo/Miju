@@ -129,6 +129,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function startGame() {
         if (!currentMode) return;
 
+        if (!currentPlayerId) {
+            alert("⚠️ Por favor, selecciona tu nombre en el desplegable 'Jugador' antes de empezar.");
+            return;
+        }
+
         if (audioCtx.state === 'suspended') audioCtx.resume();
         isGameActive = true;
 
@@ -441,6 +446,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentBest = getPlayerBestScore(currentPlayerId, currentMode);
         
         if (score > currentBest) {
+            // 0. Calcular el récord global ANTES de actualizar (para saber a quién hemos ganado)
+            let globalMax = 0;
+            let globalHolder = null;
+
+            allPlayersData.forEach(p => {
+                const s = p.memory_scores || {};
+                const val = s[currentMode] || 0;
+                if (val > globalMax) {
+                    globalMax = val;
+                    globalHolder = p;
+                }
+            });
+
             // ¡Nuevo Récord!
             // 1. Actualizar en memoria local para reflejarlo ya
             const pIndex = allPlayersData.findIndex(x => x.id === currentPlayerId);
@@ -459,7 +477,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateData[`memory_scores.${currentMode}`] = score;
                 
                 await playersCollection.doc(currentPlayerId).update(updateData);
-                alert(`¡ENHORABUENA ${currentPlayerName}!\n\nHas superado tu récord personal en ${currentMode}.\nNueva marca: ${score}`);
+                
+                // Lógica de notificación de Récord Global
+                if (score > globalMax && globalHolder && globalHolder.id !== currentPlayerId) {
+                    // Es un nuevo récord global y había un dueño anterior distinto
+                    let msg = `¡ENHORABUENA ${currentPlayerName}!\n\n¡Has batido el RÉCORD GLOBAL de ${currentMode}!\n(Anterior: ${globalMax} de ${globalHolder.name})\nNueva marca: ${score}`;
+                    
+                    if (globalHolder.email) {
+                        if (confirm(`${msg}\n\n¿Quieres enviar un correo a ${globalHolder.name} para informarle de que le has quitado el récord?`)) {
+                            const subject = `¡${currentPlayerName} te ha quitado el récord de ${currentMode}!`;
+                            const body = `Hola ${globalHolder.name}:\n\nTe informamos que ${currentPlayerName} acaba de quitarte el récord de Retos de Memoria (${currentMode}).\n\nHa llegado al nivel: ${score}`;
+                            window.location.href = `mailto:${globalHolder.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                        }
+                    } else {
+                        alert(msg);
+                    }
+                } else {
+                    alert(`¡ENHORABUENA ${currentPlayerName}!\n\nHas superado tu récord personal en ${currentMode}.\nNueva marca: ${score}`);
+                }
             } catch (error) {
                 console.error("Error guardando récord:", error);
             }
