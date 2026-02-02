@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Separamos por bloques que empiecen por número y punto (Ej: "1. ")
                 // Añadimos un salto de línea al principio para asegurar que pilla la primera pregunta
-                const blocks = ('\n' + normalizedText).split(/\n(?=\d+\.)/);
+                const blocks = ('\n' + normalizedText).split(/\n(?=\d+[\.\s\*])/);
                 
                 blocks.forEach(block => {
                     // Limpiamos líneas vacías y espacios extra
@@ -303,9 +303,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Extraer Pista (si existe)
                     let hintText = '';
-                    const hintIndex = lines.findIndex(l => /^pista:/i.test(l));
+                    const hintIndex = lines.findIndex(l => /^[\*]*pista:/i.test(l));
                     if (hintIndex !== -1) {
-                        hintText = lines[hintIndex].replace(/^pista:\s*/i, '').trim();
+                        hintText = lines[hintIndex].replace(/^[\*]*pista:[\*]*\s*/i, '').trim();
                         lines.splice(hintIndex, 1); // La quitamos para que no moleste
                     }
 
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 1. Extraer Pregunta (Todas las líneas antes de la primera opción)
                     // Quitamos el número inicial "1. " y posibles asteriscos
                     let qText = lines.slice(0, firstOptionIndex).join(' ')
-                        .replace(/^\d+\.\s*/, '')
+                        .replace(/^\d+[\.\s]*\s*/, '')
                         .replace(/\*\*/g, '')
                         .trim();
                     
