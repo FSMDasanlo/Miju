@@ -209,9 +209,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function nextLevel() {
-        // Calcular cantidad de elementos: 1, 1, 2, 2, 3, 3...
-        // Fórmula: Math.floor(index / 2) + 1
-        const qty = Math.floor(currentLevelIndex / 2) + 1;
+        // Calcular cantidad de elementos.
+        // Niveles 1 y 2 (índices 0 y 1): 1 y 2 elementos respectivamente (sin repetir).
+        // A partir de ahí (índice 2+): 3, 3, 4, 4, 5, 5...
+        let qty;
+        if (currentLevelIndex < 2) {
+            qty = currentLevelIndex + 1;
+        } else {
+            qty = Math.floor((currentLevelIndex - 2) / 2) + 3;
+        }
         
         levelIndicator.textContent = `Nivel ${currentLevelIndex + 1} (Elementos: ${qty})`;
         userSequence = [];
@@ -242,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const item of gameSequence) {
             if (!isGameActive) return;
-            await sleep(500);
+            // Pausa entre elementos (más rápida para colores)
+            await sleep(currentMode === 'colores' ? 250 : 500);
             if (!isGameActive) return;
             
             if (currentMode === 'colores') {
@@ -251,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btn) {
                     btn.classList.add('active');
                     playSound(item);
-                    await sleep(600);
+                    await sleep(400);
                     if (!isGameActive) return;
                     btn.classList.remove('active');
                 }
