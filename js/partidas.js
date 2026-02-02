@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
         measurementId: "G-6S3L4RTVC9"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
     const gamesCollection = db.collection('partidas');
     const playersCollection = db.collection('jugadores');

@@ -1,25 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURACIÓN DE FIREBASE ---
-    // ¡IMPORTANTE! Reemplaza esto con la configuración de tu propio proyecto de Firebase.
-    // La puedes encontrar en la consola de Firebase, en la configuración de tu proyecto.
     const firebaseConfig = {
-  apiKey: "AIzaSyDCfhS1tgrQrdlBSLRw8WtXaI6a--xyWm0",
-  authDomain: "miju-d79ce.firebaseapp.com",
-  projectId: "miju-d79ce",
-  storageBucket: "miju-d79ce.firebasestorage.app",
-  messagingSenderId: "982594739405",
-  appId: "1:982594739405:web:150d302d4cddb99c075d84",
-  measurementId: "G-6S3L4RTVC9"
-};
+        apiKey: "AIzaSyDCfhS1tgrQrdlBSLRw8WtXaI6a--xyWm0",
+        authDomain: "miju-d79ce.firebaseapp.com",
+        projectId: "miju-d79ce",
+        storageBucket: "miju-d79ce.firebasestorage.app",
+        messagingSenderId: "982594739405",
+        appId: "1:982594739405:web:150d302d4cddb99c075d84",
+        measurementId: "G-6S3L4RTVC9"
+    };
 
-    // Verificación de seguridad para avisarte si olvidaste poner las claves
-    if (firebaseConfig.apiKey === "TU_API_KEY") {
-        alert("¡Atención!\n\nNecesitas configurar Firebase en el archivo 'js/jugadores.js'.\n\nSigue los pasos que te he indicado para obtener tus claves.");
-        return; // Detenemos la ejecución para evitar errores de consola
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
     }
-
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const playersCollection = db.collection('jugadores');
 

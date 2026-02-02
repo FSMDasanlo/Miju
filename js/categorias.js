@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
         measurementId: "G-6S3L4RTVC9"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
     const questionsCollection = db.collection('banco_preguntas');
     let currentEditingId = null; // Variable para saber si estamos editando
