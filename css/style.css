@@ -217,7 +217,7 @@ h2 {
     gap: 10px;
 }
 
-input[type="text"], input[type="number"] {
+input[type="text"], input[type="number"], input[type="tel"], input[type="url"] {
     flex-grow: 1;
     padding: 10px 15px;
     background: #1a1a2e;
@@ -239,6 +239,15 @@ input[type="text"], input[type="number"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.player-avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    border: 2px solid #00ffff;
 }
 
 /* --- ESTILOS ESPECÍFICOS DE PARTIDAS --- */

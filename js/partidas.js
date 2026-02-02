@@ -510,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     option.textContent = p.name;
                     // Guardamos el email en un atributo de datos para usarlo al añadir
                     if (p.email) option.dataset.email = p.email;
+                    if (p.phone) option.dataset.phone = p.phone;
                     modalPlayerSelect.appendChild(option);
                     count++;
                 }
@@ -530,11 +531,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = modalPlayerSelect.value;
         const selectedOption = modalPlayerSelect.options[modalPlayerSelect.selectedIndex];
         const email = selectedOption.dataset.email || null;
+        const phone = selectedOption.dataset.phone || null;
 
         if (name && name.trim() !== "") {
             try {
                 const playerObj = { name: name.trim() };
                 if (email) playerObj.email = email;
+                if (phone) playerObj.phone = phone;
 
                 await gamesCollection.doc(currentModalGameId).update({
                     jugadores: firebase.firestore.FieldValue.arrayUnion(playerObj)
@@ -601,20 +604,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("Jugadores en la partida:", players);
 
-        // 2. Filtrar emails
+        // 2. Filtrar emails y teléfonos
         const emails = [];
+        const phones = [];
+
         players.forEach(p => {
-            if (typeof p === 'object' && p.email) {
-                emails.push(p.email);
-            } else {
-                console.warn("Jugador ignorado (sin email o formato antiguo):", p);
+            if (typeof p === 'object') {
+                if (p.email) emails.push(p.email);
+                if (p.phone) phones.push({ name: p.name, phone: p.phone });
             }
         });
 
-        console.log("Emails válidos encontrados:", emails);
+        console.log("Emails:", emails, "Phones:", phones);
 
-        if (emails.length === 0) {
-            alert("⚠️ No se encontraron emails en esta partida.\n\nPosible causa: Los jugadores se añadieron antes de configurar sus correos.\n\nSolución: Elimina al jugador de la partida y vuélvelo a añadir.");
+        if (emails.length === 0 && phones.length === 0) {
+            alert("⚠️ No se encontraron emails ni teléfonos en esta partida.\n\nPosible causa: Los jugadores se añadieron antes de configurar sus datos.\n\nSolución: Elimina al jugador de la partida y vuélvelo a añadir.");
             return;
         }
 
@@ -630,10 +634,86 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cuerpo del correo en texto plano (pero con enlace a la web bonita)
         const body = `Hola.\n\nTus amigos (${playerNames}) te están invitando a una partida de MIJU.\n\nHemos preparado una invitación con el código QR y el acceso directo.\n\nPincha aquí para verla y entrar:\n${invitePageUrl}\n\n¡Te esperamos!`;
         
+        // --- LÓGICA DE SELECCIÓN DE MEDIO ---
+        // Si hay teléfonos, mostramos un menú personalizado. Si solo hay emails, directo al correo.
+        if (phones.length > 0) {
+            // Crear modal dinámico para elegir
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0'; overlay.style.left = '0';
+            overlay.style.width = '100%'; overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.9)';
+            overlay.style.zIndex = '3000';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            
+            const content = document.createElement('div');
+            content.style.background = '#151525';
+            content.style.padding = '2rem';
+            content.style.borderRadius = '15px';
+            content.style.border = '1px solid #00ffff';
+            content.style.maxWidth = '400px';
+            content.style.width = '90%';
+            content.style.textAlign = 'center';
+            
+            let html = `<h3 style="color:#00ffff; margin-bottom:20px;">Enviar Invitación</h3>`;
+            
+            // Opción Email Global
+            if (emails.length > 0) {
+                html += `<button id="btn-invite-email-all" class="action-btn" style="margin-bottom:15px; background:linear-gradient(90deg, #EA4335, #c62828);">📧 Email a Todos (${emails.length})</button>`;
+            }
+            
+            // Opciones WhatsApp Individuales
+            html += `<div style="margin-top:10px; border-top:1px solid #333; padding-top:10px;">
+                        <p style="color:#aaa; margin-bottom:10px;">WhatsApp Individual:</p>`;
+            
+            phones.forEach((p, idx) => {
+                html += `<button class="btn-invite-wa-single" data-idx="${idx}" style="width:100%; padding:10px; margin-bottom:5px; background:#128C7E; color:white; border:none; border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;">
+                            📱 ${p.name}
+                         </button>`;
+            });
+            html += `</div>`;
+            
+            html += `<button id="btn-close-invite-overlay" style="margin-top:20px; background:transparent; border:1px solid #555; color:#aaa; padding:5px 15px; border-radius:5px; cursor:pointer;">Cancelar</button>`;
+            
+            content.innerHTML = html;
+            overlay.appendChild(content);
+            document.body.appendChild(overlay);
+            
+            // Eventos del modal dinámico
+            const closeOverlay = () => document.body.removeChild(overlay);
+            
+            document.getElementById('btn-close-invite-overlay').onclick = closeOverlay;
+            
+            if (emails.length > 0) {
+                document.getElementById('btn-invite-email-all').onclick = () => {
+                    sendEmailInvite(emails, subject, body);
+                    closeOverlay();
+                };
+            }
+            
+            overlay.querySelectorAll('.btn-invite-wa-single').forEach(btn => {
+                btn.onclick = () => {
+                    const idx = btn.dataset.idx;
+                    const p = phones[idx];
+                    const waText = `Hola ${p.name}.\n\nTe invito a una partida de MIJU.\nEntra aquí:\n${invitePageUrl}`;
+                    const cleanPhone = p.phone.replace(/[^0-9]/g, '');
+                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(waText)}`, '_blank');
+                };
+            });
+
+        } else {
+            // Solo hay emails, comportamiento antiguo
+            sendEmailInvite(emails, subject, body);
+        }
+    });
+
+    // Función auxiliar para enviar email (extraída para reutilizar)
+    const sendEmailInvite = (emails, subject, body) => {
         console.log("Abriendo cliente de correo...");
         const mailtoLink = `mailto:?bcc=${emails.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
-        // Método robusto: Crear enlace temporal y hacer click
         const link = document.createElement('a');
         link.href = mailtoLink;
         link.style.display = 'none';
@@ -641,19 +721,16 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
 
-        // Feedback al usuario + Copia al portapapeles (Fallback por si falla la apertura)
         const clipboardText = `ASUNTO: ${subject}\n\nMENSAJE:\n${body}\n\nDESTINATARIOS (CCO):\n${emails.join(', ')}`;
         
         if (navigator.clipboard) {
             navigator.clipboard.writeText(clipboardText).then(() => {
                 alert("📧 Se está intentando abrir tu programa de correo.\n\n📋 Además, he copiado el mensaje y los destinatarios al portapapeles por si necesitas pegarlos manualmente.");
-            }).catch(() => {
-                alert("📧 Se está intentando abrir tu programa de correo.");
-            });
+            }).catch(() => alert("📧 Se está intentando abrir tu programa de correo."));
         } else {
             alert("📧 Se está intentando abrir tu programa de correo.");
         }
-    });
+    };
 
     // Botón Ver Resultados Detallados
     btnViewResults.addEventListener('click', async () => {

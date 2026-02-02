@@ -28,8 +28,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerNameInput = document.getElementById('player-name');
     const playerEmailInput = document.getElementById('player-email');
     const playersList = document.getElementById('players-list');
+    
+    let editingPlayerId = null; // Variable para saber si estamos editando
+    const submitBtn = addPlayerForm.querySelector('button');
+    const originalSubmitText = submitBtn ? submitBtn.textContent : 'Añadir';
+    
+    // Inyectar campo de teléfono si no existe (ya que no editamos el HTML directamente)
+    let playerPhoneInput = document.getElementById('player-phone');
+    if (!playerPhoneInput && playerEmailInput) {
+        playerPhoneInput = document.createElement('input');
+        playerPhoneInput.type = 'tel';
+        playerPhoneInput.id = 'player-phone';
+        playerPhoneInput.placeholder = 'Teléfono (con prefijo)';
+        playerEmailInput.parentNode.insertBefore(playerPhoneInput, playerEmailInput.nextSibling);
+    }
+
+    // Inyectar campo de Foto (URL)
+    let playerPhotoInput = document.getElementById('player-photo');
+    if (!playerPhotoInput && playerEmailInput) {
+        playerPhotoInput = document.createElement('input');
+        playerPhotoInput.type = 'url';
+        playerPhotoInput.id = 'player-photo';
+        playerPhotoInput.placeholder = 'URL Foto';
+        // Insertar después del teléfono si existe, si no después del email
+        const refNode = playerPhoneInput ? playerPhoneInput.nextSibling : playerEmailInput.nextSibling;
+        playerEmailInput.parentNode.insertBefore(playerPhotoInput, refNode);
+    }
+
+    // Inyectar botón de Cancelar Edición
+    let cancelBtn = document.getElementById('btn-cancel-edit');
+    if (!cancelBtn && submitBtn) {
+        cancelBtn = document.createElement('button');
+        cancelBtn.id = 'btn-cancel-edit';
+        cancelBtn.textContent = '✖';
+        cancelBtn.title = 'Cancelar edición';
+        cancelBtn.type = 'button';
+        cancelBtn.style.display = 'none'; // Oculto por defecto
+        cancelBtn.style.background = '#555';
+        cancelBtn.style.color = '#fff';
+        cancelBtn.style.border = 'none';
+        cancelBtn.style.padding = '0 15px';
+        cancelBtn.style.borderRadius = '5px';
+        cancelBtn.style.cursor = 'pointer';
+        cancelBtn.style.marginLeft = '5px';
+        
+        submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
+        
+        cancelBtn.addEventListener('click', () => {
+            resetForm();
+        });
+    }
 
     // --- FUNCIONES ---
+
+    const resetForm = () => {
+        addPlayerForm.reset();
+        editingPlayerId = null;
+        if (submitBtn) submitBtn.textContent = originalSubmitText;
+        if (cancelBtn) cancelBtn.style.display = 'none';
+    };
 
     /**
      * Obtiene los jugadores de Firestore y los muestra en la lista.
@@ -50,12 +107,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 
                 li.innerHTML = `
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: bold;">${player.name}</span>
-                        <span style="font-size: 0.8rem; color: #aaa;">${player.email || ''}</span>
+                    <div style="display: flex; align-items: center; flex-grow: 1;">
+                        ${player.photo ? `<img src="${player.photo}" class="player-avatar-small" onerror="this.style.display='none'">` : ''}
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: bold;">${player.name}</span>
+                            <span style="font-size: 0.8rem; color: #aaa;">${player.email || ''} ${player.phone ? ' | 📞 ' + player.phone : ''}</span>
+                        </div>
                     </div>
-                    <button class="btn-delete-player" title="Eliminar">🗑️</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-icon-small btn-edit-player" title="Editar">✏️</button>
+                        <button class="btn-icon-small btn-danger btn-delete-player" title="Eliminar">🗑️</button>
+                    </div>
                 `;
+
+                // Evento Editar
+                li.querySelector('.btn-edit-player').addEventListener('click', () => {
+                    editingPlayerId = doc.id;
+                    playerNameInput.value = player.name;
+                    playerEmailInput.value = player.email || '';
+                    if (playerPhoneInput) playerPhoneInput.value = player.phone || '';
+                    if (playerPhotoInput) playerPhotoInput.value = player.photo || '';
+                    
+                    if (submitBtn) submitBtn.textContent = 'Guardar';
+                    if (cancelBtn) cancelBtn.style.display = 'block';
+                    playerNameInput.focus();
+                });
 
                 // Evento para eliminar
                 li.querySelector('.btn-delete-player').addEventListener('click', async () => {
@@ -84,13 +160,26 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const playerName = playerNameInput.value.trim();
         const playerEmail = playerEmailInput.value.trim();
+        const playerPhone = playerPhoneInput ? playerPhoneInput.value.trim() : '';
+        const playerPhoto = playerPhotoInput ? playerPhotoInput.value.trim() : '';
 
         if (playerName) {
-            await playersCollection.add({
+            const playerData = {
                 name: playerName,
-                email: playerEmail
-            });
-            addPlayerForm.reset(); // Limpiar el input
+                email: playerEmail,
+                phone: playerPhone,
+                photo: playerPhoto
+            };
+
+            if (editingPlayerId) {
+                // MODO EDICIÓN
+                await playersCollection.doc(editingPlayerId).update(playerData);
+            } else {
+                // MODO CREACIÓN
+                await playersCollection.add(playerData);
+            }
+            
+            resetForm();
             renderPlayers(); // Volver a renderizar la lista actualizada
         }
     });

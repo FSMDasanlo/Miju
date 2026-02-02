@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function playSequence() {
         isInputBlocked = true;
         if (!isGameActive) return;
-        displayArea.textContent = 'Atento...';
+        displayArea.innerHTML = '<span style="font-size: 3rem;">Atento...</span>';
         inputArea.style.opacity = '0.5'; // Deshabilitar visualmente input
         
         await sleep(1000);
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!isGameActive) return;
-        displayArea.textContent = '¡Tu turno!';
+        displayArea.innerHTML = '<span style="font-size: 3rem;">¡Tu turno!</span>';
         inputArea.style.opacity = '1';
         isInputBlocked = false;
     }
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Si ha completado la secuencia
         if (userSequence.length === gameSequence.length) {
             isInputBlocked = true;
-            displayArea.innerHTML = '<span style="color: #00ff00;">¡Correcto!</span>';
+            displayArea.innerHTML = '<span style="color: #00ff00; font-size: 3rem;">¡Correcto!</span>';
             setTimeout(() => {
                 currentLevelIndex++;
                 nextLevel();
@@ -315,38 +315,120 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function gameOver() {
+    async function gameOver() {
         // Calcular puntuación final (Niveles completados)
-        // currentLevelIndex es el nivel que estaba intentando. Si falla, su score es el anterior completado.
-        // Pero como currentLevelIndex empieza en 0, si falla en el 0, score es 0.
         const finalScore = currentLevelIndex;
 
         isInputBlocked = true;
-        displayArea.innerHTML = '<span style="color: #ff0000;">¡Fallaste!</span>';
+        displayArea.innerHTML = '<span style="color: #ff0000; font-size: 3rem;">¡Fallaste!</span>';
+        inputArea.innerHTML = ''; // Limpiar controles para mostrar el menú
         
+        let recordInfo = { isRecord: false };
+
         // Guardar récord si hay jugador seleccionado
         if (currentPlayerId && currentMode) {
-            checkAndSaveRecord(finalScore);
+            recordInfo = await checkAndSaveRecord(finalScore);
         }
 
-        setTimeout(() => {
-            let msg = `Fin del juego.\nHas completado ${finalScore} niveles.`;
-            
-            // Mensaje personalizado si hay récord
-            const currentBest = getPlayerBestScore(currentPlayerId, currentMode);
-            // Nota: getPlayerBestScore devuelve el dato guardado ANTES de este juego, 
-            // pero si acabamos de guardar (checkAndSaveRecord es async pero rápido), 
-            // visualmente ya le habremos avisado.
-            
-            if (confirm(`${msg}\n\n¿Reintentar?`)) {
-                startGame();
-            } else {
-                // Volver a config
-                gameArea.classList.add('hidden');
-                document.querySelector('.form-container').classList.remove('hidden');
-                displayArea.textContent = '';
+        // --- GENERAR MENÚ DE FIN DE JUEGO ---
+        const container = document.createElement('div');
+        container.style.textAlign = 'center';
+        container.style.marginTop = '20px';
+        container.className = 'game-over-menu';
+
+        let html = `<h3 style="color: #fff; margin-bottom: 10px;">Fin del juego</h3>
+                    <p style="font-size: 1.2rem; margin-bottom: 20px;">Nivel alcanzado: <span style="color: #00ffff; font-weight:bold;">${finalScore}</span></p>`;
+
+        if (recordInfo.isRecord) {
+            html += `<p style="color: #00ff00; font-weight: bold; margin-bottom: 10px; font-size: 1.2rem;">¡NUEVO RÉCORD PERSONAL!</p>`;
+            if (recordInfo.isGlobal) {
+                html += `<p style="color: #ffd700; font-weight: bold; margin-bottom: 15px; font-size: 1.3rem; text-shadow: 0 0 10px #ffd700;">🏆 ¡RÉCORD GLOBAL! 🏆</p>`;
             }
-        }, 500);
+        }
+
+        container.innerHTML = html;
+
+        // Contenedor de botones
+        const btnContainer = document.createElement('div');
+        btnContainer.style.display = 'flex';
+        btnContainer.style.flexWrap = 'wrap';
+        btnContainer.style.gap = '15px';
+        btnContainer.style.justifyContent = 'center';
+        btnContainer.style.marginTop = '20px';
+
+        // Botón WhatsApp (Si hay récord)
+        if (recordInfo.isRecord) {
+            const btnWa = document.createElement('button');
+            btnWa.className = 'action-btn';
+            btnWa.style.background = '#25D366'; // Color WhatsApp
+            btnWa.style.color = '#fff';
+            btnWa.style.width = 'auto';
+            btnWa.innerHTML = '📱 Compartir WhatsApp';
+            btnWa.onclick = () => {
+                const text = `¡He conseguido un nuevo récord en Memoria (${currentMode}) en MIJU! 🧠\nNivel: ${finalScore}\n\n¿Puedes superarme? 😉\nhttps://fsmdasanlo.github.io/Miju/`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            };
+            btnContainer.appendChild(btnWa);
+
+            // Botón Email (Si es Global y hay a quien avisar)
+            if (recordInfo.isGlobal && recordInfo.previousHolder && recordInfo.previousHolder.email) {
+                const btnMail = document.createElement('button');
+                btnMail.className = 'action-btn';
+                btnMail.style.background = '#EA4335'; // Color Gmail
+                btnMail.style.width = 'auto';
+                btnMail.innerHTML = `📧 Avisar a ${recordInfo.previousHolder.name}`;
+                btnMail.onclick = () => {
+                    const subject = `¡${currentPlayerName} te ha quitado el récord de ${currentMode}!`;
+                    const body = `Hola ${recordInfo.previousHolder.name}:\n\nTe informamos que ${currentPlayerName} acaba de quitarte el récord de Retos de Memoria (${currentMode}).\n\nHa llegado al nivel: ${finalScore}\n\nRECUPERA TU RECORD DE NUEVO.\nJuega en el siguiente link:\nhttps://fsmdasanlo.github.io/Miju/`;
+                    window.location.href = `mailto:${recordInfo.previousHolder.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                };
+                btnContainer.appendChild(btnMail);
+            }
+
+            // Botón WhatsApp Rival (Si es Global y tiene teléfono)
+            if (recordInfo.isGlobal && recordInfo.previousHolder && recordInfo.previousHolder.phone) {
+                const btnWaRival = document.createElement('button');
+                btnWaRival.className = 'action-btn';
+                btnWaRival.style.background = '#128C7E'; // WhatsApp Dark
+                btnWaRival.style.width = 'auto';
+                btnWaRival.innerHTML = `😈 Picar a ${recordInfo.previousHolder.name}`;
+                btnWaRival.onclick = () => {
+                    // Limpiar teléfono (quitar espacios, guiones, etc)
+                    const phone = recordInfo.previousHolder.phone.replace(/[^0-9]/g, '');
+                    const text = `Hola ${recordInfo.previousHolder.name}:\n\nTe informamos que ${currentPlayerName} acaba de quitarte el récord de Retos de Memoria (${currentMode}).\n\nHa llegado al nivel: ${finalScore}\n\nRECUPERA TU RECORD DE NUEVO.\nJuega en el siguiente link:\nhttps://fsmdasanlo.github.io/Miju/`;
+                    
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                };
+                btnContainer.appendChild(btnWaRival);
+            }
+        }
+
+        // Botón Reintentar
+        const btnRetry = document.createElement('button');
+        btnRetry.className = 'action-btn';
+        btnRetry.style.width = 'auto';
+        btnRetry.style.background = 'linear-gradient(90deg, #00ffff, #0077ff)';
+        btnRetry.innerHTML = '🔄 Reintentar';
+        btnRetry.onclick = startGame;
+        btnContainer.appendChild(btnRetry);
+
+        // Botón Salir
+        const btnExit = document.createElement('button');
+        btnExit.className = 'btn-secondary';
+        btnExit.style.padding = '15px 20px';
+        btnExit.style.borderRadius = '8px';
+        btnExit.style.cursor = 'pointer';
+        btnExit.innerHTML = 'Salir';
+        btnExit.onclick = () => {
+            gameArea.classList.add('hidden');
+            document.querySelector('.form-container').classList.remove('hidden');
+            displayArea.textContent = '';
+            inputArea.innerHTML = '';
+        };
+        btnContainer.appendChild(btnExit);
+
+        container.appendChild(btnContainer);
+        inputArea.appendChild(container);
     }
 
     // --- GESTIÓN DE JUGADORES Y PUNTUACIONES ---
@@ -451,8 +533,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function checkAndSaveRecord(score) {
         const currentBest = getPlayerBestScore(currentPlayerId, currentMode);
+        let result = { isRecord: false, isGlobal: false, previousHolder: null };
         
         if (score > currentBest) {
+            result.isRecord = true;
+
             // 0. Calcular el récord global ANTES de actualizar (para saber a quién hemos ganado)
             let globalMax = 0;
             let globalHolder = null;
@@ -485,27 +570,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 await playersCollection.doc(currentPlayerId).update(updateData);
                 
-                // Lógica de notificación de Récord Global
-                if (score > globalMax && globalHolder && globalHolder.id !== currentPlayerId) {
-                    // Es un nuevo récord global y había un dueño anterior distinto
-                    let msg = `¡ENHORABUENA ${currentPlayerName}!\n\n¡Has batido el RÉCORD GLOBAL de ${currentMode}!\n(Anterior: ${globalMax} de ${globalHolder.name})\nNueva marca: ${score}`;
-                    
-                    if (globalHolder.email) {
-                        if (confirm(`${msg}\n\n¿Quieres enviar un correo a ${globalHolder.name} para informarle de que le has quitado el récord?`)) {
-                            const subject = `¡${currentPlayerName} te ha quitado el récord de ${currentMode}!`;
-                            const body = `Hola ${globalHolder.name}:\n\nTe informamos que ${currentPlayerName} acaba de quitarte el récord de Retos de Memoria (${currentMode}).\n\nHa llegado al nivel: ${score}`;
-                            window.location.href = `mailto:${globalHolder.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                        }
-                    } else {
-                        alert(msg);
+                // Determinar si es récord global para devolver la info
+                if (score > globalMax) {
+                    // Si había un dueño anterior distinto a mí
+                    if (globalHolder && globalHolder.id !== currentPlayerId) {
+                        result.isGlobal = true;
+                        result.previousHolder = globalHolder;
+                    } else if (!globalHolder) {
+                        // Primer récord global
+                        result.isGlobal = true;
                     }
-                } else {
-                    alert(`¡ENHORABUENA ${currentPlayerName}!\n\nHas superado tu récord personal en ${currentMode}.\nNueva marca: ${score}`);
                 }
             } catch (error) {
                 console.error("Error guardando récord:", error);
             }
         }
+        return result;
     }
 
     function sleep(ms) {
