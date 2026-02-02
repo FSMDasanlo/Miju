@@ -1294,3 +1294,17 @@ input:checked + .slider:before { transform: translateX(22px); }
     padding-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Tarjeta de Mantenimiento/Peligro */
+.danger-zone {
+    background: rgba(255, 68, 68, 0.05) !important;
+    border: 1px solid #ff4444 !important;
+}
+
+.danger-zone h2 {
+    color: #ff9900;
+}
+
+.danger-zone .action-btn {
+    margin-bottom: 10px;
+}

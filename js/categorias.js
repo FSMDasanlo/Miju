@@ -158,16 +158,103 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Borrar TODAS las preguntas
-    if (btnDeleteAll) {
+    if (btnDeleteAll) { // Usamos la existencia de un botón para inyectar la nueva tarjeta
+        // 1. Crear el nuevo contenedor (la tarjeta de peligro)
+        const dangerZoneContainer = document.createElement('div');
+        dangerZoneContainer.className = 'list-container danger-zone';
+        dangerZoneContainer.innerHTML = `
+            <h2 style="color: #ff9900;">Mantenimiento</h2>
+            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Acciones para limpiar la base de datos. Úsalas con precaución.
+            </p>
+        `;
+
+        // 2. Crear botón de Eliminar Duplicados
+        const btnRemoveDupes = document.createElement('button');
+        btnRemoveDupes.className = 'action-btn';
+        btnRemoveDupes.style.background = 'linear-gradient(90deg, #ff9900, #ff5500)';
+        btnRemoveDupes.innerHTML = '🧹 Eliminar Preguntas Duplicadas';
+        dangerZoneContainer.appendChild(btnRemoveDupes);
+
+        // 3. Insertar el contenedor en el DOM (Reorganización solicitada)
+        const individualUploadCard = btnAddSingle ? (btnAddSingle.closest('.list-container') || btnAddSingle.closest('.form-container')) : null;
+        const fileManagementCard = btnMassUpload ? (btnMassUpload.closest('.list-container') || btnMassUpload.closest('.form-container')) : null;
+
+        if (individualUploadCard && fileManagementCard && individualUploadCard.parentNode) {
+            fileManagementCard.parentNode.insertBefore(individualUploadCard, fileManagementCard.nextSibling);
+            individualUploadCard.parentNode.insertBefore(dangerZoneContainer, individualUploadCard.nextSibling);
+        } else if (btnDeleteAll.parentNode) {
+            btnDeleteAll.parentNode.insertBefore(dangerZoneContainer, btnDeleteAll);
+        }
+
+        // 4. Mover el botón de "Borrar Todo" al nuevo contenedor y estilizarlo
+        dangerZoneContainer.appendChild(btnDeleteAll);
+        
+        btnDeleteAll.innerHTML = '🗑️ Borrar TODA la base de datos';
+        btnDeleteAll.className = 'action-btn';
+        btnDeleteAll.style.background = 'linear-gradient(90deg, #ff4444, #b71c1c)';
+        btnDeleteAll.style.marginTop = '10px';
+        btnDeleteAll.style.marginBottom = '0';
+
+        // 5. Añadir los listeners a los botones
+        btnRemoveDupes.addEventListener('click', async () => {
+            if (!confirm("¿Quieres analizar la base de datos y eliminar automáticamente las preguntas repetidas?")) return;
+
+            questionsList.innerHTML = '<li class="loading-item">Analizando preguntas...</li>';
+
+            try {
+                const snapshot = await questionsCollection.get();
+                const seenTexts = new Set();
+                const duplicates = [];
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const normalizedText = data.texto ? data.texto.trim().toLowerCase() : '';
+
+                    if (normalizedText && seenTexts.has(normalizedText)) {
+                        duplicates.push(doc.id);
+                    } else {
+                        seenTexts.add(normalizedText);
+                    }
+                });
+
+                if (duplicates.length === 0) {
+                    alert("¡Todo limpio! No se encontraron preguntas duplicadas.");
+                } else if (confirm(`⚠️ Se han encontrado ${duplicates.length} preguntas repetidas.\n\n¿Quieres eliminarlas y dejar solo una copia de cada una?`)) {
+                    const chunkSize = 400;
+                    const chunks = [];
+                    for (let i = 0; i < duplicates.length; i += chunkSize) {
+                        chunks.push(duplicates.slice(i, i + chunkSize));
+                    }
+
+                    for (const chunk of chunks) {
+                        const batch = db.batch();
+                        chunk.forEach(id => batch.delete(questionsCollection.doc(id)));
+                        await batch.commit();
+                    }
+
+                    alert(`¡Limpieza completada! Se eliminaron ${duplicates.length} duplicados.`);
+                }
+                renderQuestions(); // Recargar siempre
+            } catch (error) {
+                console.error("Error eliminando duplicados:", error);
+                alert("Error al procesar duplicados.");
+                renderQuestions();
+            }
+        });
+
         btnDeleteAll.addEventListener('click', async () => {
             if (loadedQuestions.length === 0) return alert("No hay preguntas para borrar.");
             
+            const password = prompt("🔒 ZONA PELIGROSA\n\nPara borrar TODA la base de datos, introduce la clave de administrador:");
+            if (password !== "Traid1959") {
+                return alert("⛔ Contraseña incorrecta.");
+            }
+
             if (!confirm("⚠️ ¡PELIGRO! ⚠️\n\n¿Estás seguro de que quieres BORRAR TODAS las preguntas?\n\nEsta acción no se puede deshacer.")) return;
             if (!confirm(`Se van a eliminar ${loadedQuestions.length} preguntas permanentemente.\n\n¿Confirmar borrado total?`)) return;
 
             try {
-                // Firestore permite batches de hasta 500 operaciones.
-                // Como tenemos más de 800, lo hacemos en trozos (chunks).
                 const chunkSize = 400;
                 const chunks = [];
                 for (let i = 0; i < loadedQuestions.length; i += chunkSize) {

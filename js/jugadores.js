@@ -164,6 +164,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerPhoto = playerPhotoInput ? playerPhotoInput.value.trim() : '';
 
         if (playerName) {
+            // Verificar si el nombre ya existe
+            const snapshot = await playersCollection.where('name', '==', playerName).get();
+            
+            if (!snapshot.empty) {
+                // Si estamos editando, el duplicado es válido solo si es otro ID distinto al actual
+                if (editingPlayerId) {
+                    const duplicate = snapshot.docs.find(doc => doc.id !== editingPlayerId);
+                    if (duplicate) {
+                        alert(`El nombre "${playerName}" ya está en uso por otro jugador.\nPor favor, elige otro.`);
+                        return;
+                    }
+                } else {
+                    // Si es nuevo y existe, es duplicado
+                    alert(`El nombre "${playerName}" ya existe.\nPor favor, elige otro.`);
+                    return;
+                }
+            }
+
             const playerData = {
                 name: playerName,
                 email: playerEmail,
