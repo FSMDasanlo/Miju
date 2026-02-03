@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isGameActive = false;
     let currentPlayerId = null;
     let currentPlayerName = null;
+    let currentRecord = 0; // Récord actual del modo
     let allPlayersData = []; // Para calcular rankings globales
 
     // --- FRASES MOTIVADORAS ---
@@ -55,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DATA = {
         numeros: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         letras: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
-        colores: ['green', 'red', 'yellow', 'blue'], // IDs para Simón
-        fichas: [] // Se generará dinámicamente d00..d66
+        colores: ['green', 'red', 'yellow', 'blue'],
+        figuras: ['☀️', '🌙', '⭐', '△', '⭕', '⬢']
     };
 
     // --- AUDIO (SIMÓN DICE) ---
@@ -89,17 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.start(now);
         osc.stop(now + 0.5);
     }
-
-    // Generar lista de fichas de dominó (00 a 66)
-    for (let i = 0; i <= 6; i++) {
-        for (let j = i; j <= 6; j++) { // j=i para evitar duplicados inversos si es standard, pero usuario dijo 38 imgs.
-            // Si el usuario tiene 38 imágenes específicas, asumimos d00 a d66 completas o similar.
-            // Generamos la serie estándar doble 6 (28 fichas) para asegurar que existen.
-            DATA.fichas.push(`d${i}${j}`);
-        }
-    }
-    // Nota: Si hay 38 imágenes exactas en la carpeta, podríamos ajustar esto. 
-    // Por ahora usamos las combinaciones estándar de dominó que coinciden con el patrón dXY.
 
     // --- INICIALIZACIÓN ---
     loadPlayers();
@@ -153,6 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
         gameSequence = [];
         userSequence = [];
         
+        // Calcular récord actual para mostrarlo
+        currentRecord = 0;
+        allPlayersData.forEach(p => {
+            const s = p.memory_scores || {};
+            if ((s[currentMode] || 0) > currentRecord) {
+                currentRecord = s[currentMode] || 0;
+            }
+        });
+
         // UI Setup
         document.querySelector('.form-container').classList.add('hidden'); // Ocultar config
         gameArea.classList.remove('hidden');
@@ -187,18 +186,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             inputArea.appendChild(board);
 
-        } else if (currentMode === 'fichas') {
-            // Grid de imágenes
+        } else if (currentMode === 'figuras') {
+            // Grid de 2x3 para las figuras
             const grid = document.createElement('div');
-            grid.className = 'input-grid-tokens';
+            grid.className = 'input-grid-small'; // Reutilizamos esta clase
+            grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // Forzamos 3 columnas
             
-            DATA.fichas.forEach(ficha => {
-                const img = document.createElement('img');
-                img.src = `img/${ficha}.png`; // Asumiendo ruta img/d00.png
-                img.className = 'token-img';
-                img.alt = ficha;
-                img.addEventListener('click', () => handleInput(ficha));
-                grid.appendChild(img);
+            DATA.figuras.forEach(figura => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-input-item';
+                btn.id = `figura-${figura}`; // ID único para encontrarlo después
+                btn.textContent = figura;
+                btn.style.fontSize = '2.5rem'; // Más grande para los emojis
+                btn.addEventListener('click', () => handleInput(figura));
+                grid.appendChild(btn);
             });
             inputArea.appendChild(grid);
 
@@ -219,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function nextLevel() {
+    async function nextLevel() {
         // Calcular cantidad de elementos.
         // Niveles 1 y 2 (índices 0 y 1): 1 y 2 elementos respectivamente (sin repetir).
         // A partir de ahí (índice 2+): 3, 3, 4, 4, 5, 5...
@@ -230,10 +231,19 @@ document.addEventListener('DOMContentLoaded', () => {
             qty = Math.floor((currentLevelIndex - 2) / 2) + 3;
         }
         
-        levelIndicator.textContent = `Nivel ${currentLevelIndex + 1} (Elementos: ${qty})`;
+        // Mostrar Nivel y Récord
+        let recordText = currentRecord > 0 ? ` <span style="color:#ffd700; margin-left:15px; text-shadow:0 0 5px #b8860b;">🏆 ${currentRecord}</span>` : '';
+        levelIndicator.innerHTML = `Nivel ${currentLevelIndex + 1} <span style="font-size:0.8em; color:#aaa;">(${qty} elems)</span>${recordText}`;
+
         userSequence = [];
         gameSequence = generateSequence(qty);
         
+        // --- MOTIVACIÓN: Si estamos a 3 niveles del récord ---
+        // Ejemplo: Récord 10. Nivel 8 (Index 7). 10 - 7 = 3.
+        if (currentRecord > 0 && (currentRecord - currentLevelIndex === 3)) {
+            await showMotivationAlert();
+        }
+
         playSequence();
     }
 
@@ -245,6 +255,39 @@ document.addEventListener('DOMContentLoaded', () => {
             seq.push(randomItem);
         }
         return seq;
+    }
+
+    function showMotivationAlert() {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0'; overlay.style.left = '0';
+            overlay.style.width = '100%'; overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.9)';
+            overlay.style.zIndex = '3000';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.textAlign = 'center';
+            
+            overlay.innerHTML = `
+                <h1 style="color: #ffd700; font-size: 3rem; margin-bottom: 20px; text-shadow: 0 0 20px #ff0000; animation: pulse 1s infinite;">🔥 ¡ESTÁS ON FIRE! 🔥</h1>
+                <p style="color: #fff; font-size: 1.5rem; max-width: 80%; margin-bottom: 30px; line-height: 1.5;">
+                    Estás a solo <span style="color: #00ffff; font-weight:bold; font-size: 2.5rem;">3 niveles</span> de alcanzar el Récord Global.
+                    <br><br>
+                    Respira hondo... ¡Tú puedes hacer historia!
+                </p>
+                <button id="btn-resume-motivation" class="action-btn" style="font-size: 1.2rem; padding: 15px 40px; background: linear-gradient(90deg, #ff9900, #ff5500); border:none; border-radius:50px; color:white; cursor:pointer; box-shadow: 0 0 15px #ff5500;">¡VAMOS ALLÁ! 🚀</button>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            document.getElementById('btn-resume-motivation').onclick = () => {
+                overlay.remove();
+                resolve();
+            };
+        });
     }
 
     async function playSequence() {
@@ -273,12 +316,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!isGameActive) return;
                     btn.classList.remove('active');
                 }
-            } else if (currentMode === 'fichas') {
-                // Mostrar imagen
-                displayArea.innerHTML = `<img src="img/${item}.png" style="max-height: 150px;">`;
-                await sleep(1000);
-                if (!isGameActive) return;
-                displayArea.innerHTML = '';
+            } else if (currentMode === 'figuras') {
+                // Iluminar la figura en el tablero de input
+                const btn = document.getElementById(`figura-${item}`);
+                if (btn) {
+                    btn.classList.add('active'); // Usaremos la clase 'active' de simon-btn
+                    await sleep(800);
+                    if (!isGameActive) return;
+                    btn.classList.remove('active');
+                }
             } else {
                 // Mostrar texto (número/letra)
                 displayArea.textContent = item;
@@ -297,12 +343,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleInput(value) {
         if (isInputBlocked) return;
 
-        // Efecto visual al pulsar (especialmente útil para Simón)
+        // Efecto visual al pulsar
         if (currentMode === 'colores') {
             const btn = document.getElementById(`simon-${value}`);
             btn.classList.add('active');
             playSound(value);
             setTimeout(() => btn.classList.remove('active'), 200);
+        } else if (currentMode === 'figuras') {
+            const btn = document.getElementById(`figura-${value}`);
+            if (btn) {
+                btn.classList.add('clicked');
+                setTimeout(() => btn.classList.remove('clicked'), 150);
+            }
         }
 
         userSequence.push(value);
@@ -332,7 +384,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isInputBlocked = true;
         const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
-        displayArea.innerHTML = `<span style="color: #ff0000; font-size: 3rem;">¡Fallaste!</span><p style="color: #aaa; font-size: 1.1rem; margin-top: 10px; font-style: italic;">${randomPhrase}</p>`;
+        displayArea.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <div style="color: #ff0000; font-size: 3rem; margin-bottom: 25px;">¡Fallaste!</div>
+                <div style="color: #aaa; font-size: 1.1rem; font-style: italic;">${randomPhrase}</div>
+            </div>
+        `;
         inputArea.innerHTML = ''; // Limpiar controles para mostrar el menú
         
         let recordInfo = { isRecord: false };
@@ -490,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const globalBests = {
             numeros: { score: 0, holder: '-' },
             letras: { score: 0, holder: '-' },
-            fichas: { score: 0, holder: '-' },
+            figuras: { score: 0, holder: '-' },
             colores: { score: 0, holder: '-' }
         };
 
@@ -515,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const modes = [
             { key: 'numeros', label: 'Números' },
             { key: 'letras', label: 'Letras' },
-            { key: 'fichas', label: 'Fichas' },
+            { key: 'figuras', label: 'Figuras' },
             { key: 'colores', label: 'Colores' }
         ];
 

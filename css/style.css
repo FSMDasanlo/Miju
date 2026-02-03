@@ -1240,7 +1240,7 @@ input:checked + .slider:before { transform: translateX(22px); }
     font-weight: bold;
     color: #ffd700;
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-    min-height: 150px;
+    min-height: 110px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1275,6 +1275,20 @@ input:checked + .slider:before { transform: translateX(22px); }
 .btn-input-item:hover {
     border-color: #00ffff;
     background: rgba(0, 255, 255, 0.1);
+}
+
+/* Estilo para resaltar la figura en la secuencia */
+.btn-input-item.active {
+    background: #00ffff;
+    color: #000;
+    transform: scale(1.2);
+    box-shadow: 0 0 20px #00ffff;
+}
+
+/* Estilo para el feedback al pulsar la figura */
+.btn-input-item.clicked {
+    background: #00ffff;
+    color: #000;
 }
 
 /* Grid para Fichas (Dominó) */
