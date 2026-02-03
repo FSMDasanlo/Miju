@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const db = firebase.firestore();
     const playersCollection = db.collection('jugadores');
+    const gamesCollection = db.collection('partidas'); // Necesario para consultar estadísticas
 
     // --- REFERENCIAS DEL DOM ---
     const addPlayerForm = document.getElementById('add-player-form');
@@ -259,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
+                        <button class="btn-icon-small btn-view-player" title="Ver Ficha" style="background: #0077ff;">👁️</button>
                         <button class="btn-icon-small btn-edit-player" title="Editar">✏️</button>
                         <button class="btn-icon-small btn-danger btn-delete-player" title="Eliminar">🗑️</button>
                     </div>
@@ -282,6 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     playerNameInput.focus();
+                });
+
+                // Evento Ver Ficha
+                li.querySelector('.btn-view-player').addEventListener('click', () => {
+                    showPlayerDetails(player);
                 });
 
                 // Evento para eliminar
@@ -310,6 +317,167 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 playersList.innerHTML = '<li class="error-item">Error al cargar los jugadores.</li>';
             }
+        }
+    };
+
+    // --- FUNCIÓN: MOSTRAR FICHA DE JUGADOR ---
+    const showPlayerDetails = async (player) => {
+        // 1. Crear o reutilizar modal
+        let modal = document.getElementById('player-details-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'player-details-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <span class="close-modal" style="cursor:pointer;">&times;</span>
+                    <div id="player-details-content">Cargando datos...</div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Cerrar modal
+            modal.querySelector('.close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+        }
+        
+        const contentDiv = modal.querySelector('#player-details-content');
+        contentDiv.innerHTML = '<div style="text-align:center; padding:20px;">⏳ Analizando historial de partidas...</div>';
+        modal.classList.remove('hidden');
+
+        try {
+            // 2. Obtener historial de partidas
+            // Nota: Como la estructura de 'jugadores' dentro de 'partidas' es un array de objetos,
+            // no podemos filtrar fácilmente con 'where' simple. Traemos las partidas y filtramos en JS.
+            // Para optimizar en producción, se debería desnormalizar datos, pero para este uso está bien.
+            const gamesSnapshot = await gamesCollection.orderBy('fechaCreacion', 'desc').get();
+            
+            let gamesPlayed = 0;
+            let totalPoints = 0;
+            let totalAnswers = 0;
+            let lastGame = null;
+
+            gamesSnapshot.forEach(doc => {
+                const g = doc.data();
+                const players = g.jugadores || [];
+                
+                // Buscar al jugador en esta partida
+                const playerDataInGame = players.find(p => (typeof p === 'object' ? p.name : p) === player.name);
+                
+                if (playerDataInGame) {
+                    gamesPlayed++;
+                    
+                    // Sumar estadísticas si existen
+                    if (typeof playerDataInGame === 'object') {
+                        totalPoints += (playerDataInGame.puntos || 0);
+                        totalAnswers += (playerDataInGame.respuestas || 0);
+                    }
+
+                    // Guardar la última partida (la primera que encontramos porque ordenamos desc)
+                    if (!lastGame) {
+                        lastGame = {
+                            name: g.referencia,
+                            date: g.fechaCreacion ? g.fechaCreacion.toDate().toLocaleDateString() : 'Fecha desconocida',
+                            players: players.map(p => typeof p === 'object' ? p.name : p).join(', ')
+                        };
+                    }
+                }
+            });
+
+            // --- NUEVO: Obtener Récords Globales de Memoria ---
+            const allPlayersSnapshot = await playersCollection.get();
+            const globalRecords = {};
+
+            allPlayersSnapshot.forEach(doc => {
+                const p = doc.data();
+                const scores = p.memory_scores || {};
+                for (const [mode, score] of Object.entries(scores)) {
+                    if (!globalRecords[mode] || score > globalRecords[mode].score) {
+                        globalRecords[mode] = { score: score, holder: p.name };
+                    }
+                }
+            });
+
+            // 3. Preparar datos de Memoria (Comparativa)
+            const memoryScores = player.memory_scores || {};
+            const allModes = new Set([...Object.keys(memoryScores), ...Object.keys(globalRecords)]);
+            
+            let memoryHtml = '';
+            if (allModes.size > 0) {
+                memoryHtml = '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">';
+                
+                const sortedModes = Array.from(allModes).sort();
+
+                for (const mode of sortedModes) {
+                    const playerScore = memoryScores[mode] || 0;
+                    const globalRec = globalRecords[mode] || { score: 0, holder: '-' };
+                    const modeName = mode.charAt(0).toUpperCase() + mode.slice(1);
+
+                    // Destacar si el jugador tiene el récord
+                    const isRecordHolder = playerScore > 0 && playerScore >= globalRec.score;
+                    const borderStyle = isRecordHolder ? 'border: 1px solid #ffd700;' : 'border: 1px solid rgba(0,255,255,0.1);';
+                    const bgStyle = isRecordHolder ? 'background:rgba(255, 215, 0, 0.1);' : 'background:rgba(0,255,255,0.05);';
+
+                    memoryHtml += `
+                    <div class="stat-box" style="${bgStyle} padding:10px; border-radius:5px; ${borderStyle}">
+                        <div class="stat-label" style="color:#00ffff; margin-bottom:5px; font-weight:bold;">${modeName}</div>
+                        
+                        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px;">
+                            <span style="color:#aaa; font-size:0.8rem;">Tú:</span>
+                            <span style="font-weight:bold; font-size:1.1rem; color:${isRecordHolder ? '#ffd700' : '#fff'}">${playerScore}</span>
+                        </div>
+                        
+                        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:5px; width:100%;">
+                            <div style="font-size:0.7rem; color:#aaa; text-align:left;">Récord Global:</div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.8rem; color:#ffd700;">${globalRec.holder}</span>
+                                <span style="font-weight:bold; color:#ffd700;">${globalRec.score}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                memoryHtml += '</div>';
+            } else {
+                memoryHtml = '<p style="color:#aaa; font-style:italic;">Sin datos de memoria registrados.</p>';
+            }
+
+            // 4. Renderizar HTML
+            contentDiv.innerHTML = `
+                <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:20px;">
+                    <img src="${player.photo || 'https://via.placeholder.com/100?text=User'}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #00ffff;">
+                    <div>
+                        <h2 style="color:#00ffff; margin:0;">${player.name}</h2>
+                        <p style="color:#aaa; margin-top:5px;">📧 ${player.email || 'Sin email'}</p>
+                        <p style="color:#aaa;">📞 ${player.phone || 'Sin teléfono'}</p>
+                    </div>
+                </div>
+
+                <h3 style="color:#eee; border-bottom:1px solid #00ffff; padding-bottom:5px; margin-bottom:15px;">📊 Estadísticas de Trivial</h3>
+                <div class="modal-stats-grid">
+                    <div class="stat-box"><span class="stat-label">Partidas</span><span class="stat-value">${gamesPlayed}</span></div>
+                    <div class="stat-box"><span class="stat-label">Puntos</span><span class="stat-value">${totalPoints}</span></div>
+                    <div class="stat-box"><span class="stat-label">Respuestas</span><span class="stat-value">${totalAnswers}</span></div>
+                    <div class="stat-box"><span class="stat-label">Efectividad</span><span class="stat-value">${totalAnswers > 0 ? Math.round((totalPoints/totalAnswers)*100) : 0}%</span></div>
+                </div>
+
+                ${lastGame ? `
+                    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
+                        <h4 style="color:#ffd700; margin-bottom:10px;">🏆 Última Partida</h4>
+                        <p><strong>Fecha:</strong> ${lastGame.date}</p>
+                        <p><strong>Nombre:</strong> ${lastGame.name}</p>
+                        <p><strong>Jugadores:</strong> <span style="color:#aaa; font-size:0.9rem;">${lastGame.players}</span></p>
+                    </div>
+                ` : '<p style="color:#aaa; margin-bottom:20px;">No ha jugado ninguna partida aún.</p>'}
+
+                <h3 style="color:#eee; border-bottom:1px solid #00ffff; padding-bottom:5px; margin-bottom:15px;">🧠 Retos de Memoria</h3>
+                ${memoryHtml}
+            `;
+
+        } catch (error) {
+            console.error("Error cargando ficha:", error);
+            contentDiv.innerHTML = '<p style="color:red; text-align:center;">Error al cargar los datos del jugador.</p>';
         }
     };
 
