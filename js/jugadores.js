@@ -357,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let gamesPlayed = 0;
             let totalPoints = 0;
             let totalAnswers = 0;
-            let lastGame = null;
 
             gamesSnapshot.forEach(doc => {
                 const g = doc.data();
@@ -373,15 +372,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (typeof playerDataInGame === 'object') {
                         totalPoints += (playerDataInGame.puntos || 0);
                         totalAnswers += (playerDataInGame.respuestas || 0);
-                    }
-
-                    // Guardar la última partida (la primera que encontramos porque ordenamos desc)
-                    if (!lastGame) {
-                        lastGame = {
-                            name: g.referencia,
-                            date: g.fechaCreacion ? g.fechaCreacion.toDate().toLocaleDateString() : 'Fecha desconocida',
-                            players: players.map(p => typeof p === 'object' ? p.name : p).join(', ')
-                        };
                     }
                 }
             });
@@ -430,7 +420,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         
                         <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:5px; width:100%;">
-                            <div style="font-size:0.7rem; color:#aaa; text-align:left;">Récord Global:</div>
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <span style="font-size:0.8rem; color:#ffd700;">${globalRec.holder}</span>
                                 <span style="font-weight:bold; color:#ffd700;">${globalRec.score}</span>
@@ -445,33 +434,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 4. Renderizar HTML
             contentDiv.innerHTML = `
-                <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:20px;">
-                    <img src="${player.photo || 'https://via.placeholder.com/100?text=User'}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #00ffff;">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:15px;">
+                    <img src="${player.photo || 'https://via.placeholder.com/80?text=U'}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #00ffff;">
                     <div>
-                        <h2 style="color:#00ffff; margin:0;">${player.name}</h2>
-                        <p style="color:#aaa; margin-top:5px;">📧 ${player.email || 'Sin email'}</p>
-                        <p style="color:#aaa;">📞 ${player.phone || 'Sin teléfono'}</p>
+                        <h2 style="color:#00ffff; margin:0; font-size:1.5rem;">${player.name}</h2>
+                        <p style="color:#aaa; margin-top:4px; font-size:0.8rem;">📧 ${player.email || 'Sin email'}</p>
+                        <p style="color:#aaa; font-size:0.8rem;">📞 ${player.phone || 'Sin teléfono'}</p>
                     </div>
                 </div>
 
-                <h3 style="color:#eee; border-bottom:1px solid #00ffff; padding-bottom:5px; margin-bottom:15px;">📊 Estadísticas de Trivial</h3>
-                <div class="modal-stats-grid">
+                <h3 style="color:#eee; border-bottom:1px solid #00ffff; padding-bottom:5px; margin-bottom:10px; font-size:1.1rem;">📊 Estadísticas de Trivial</h3>
+                <div class="modal-stats-grid" style="margin-bottom: 1rem;">
                     <div class="stat-box"><span class="stat-label">Partidas</span><span class="stat-value">${gamesPlayed}</span></div>
                     <div class="stat-box"><span class="stat-label">Puntos</span><span class="stat-value">${totalPoints}</span></div>
                     <div class="stat-box"><span class="stat-label">Respuestas</span><span class="stat-value">${totalAnswers}</span></div>
                     <div class="stat-box"><span class="stat-label">Efectividad</span><span class="stat-value">${totalAnswers > 0 ? Math.round((totalPoints/totalAnswers)*100) : 0}%</span></div>
                 </div>
 
-                ${lastGame ? `
-                    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <h4 style="color:#ffd700; margin-bottom:10px;">🏆 Última Partida</h4>
-                        <p><strong>Fecha:</strong> ${lastGame.date}</p>
-                        <p><strong>Nombre:</strong> ${lastGame.name}</p>
-                        <p><strong>Jugadores:</strong> <span style="color:#aaa; font-size:0.9rem;">${lastGame.players}</span></p>
-                    </div>
-                ` : '<p style="color:#aaa; margin-bottom:20px;">No ha jugado ninguna partida aún.</p>'}
-
-                <h3 style="color:#eee; border-bottom:1px solid #00ffff; padding-bottom:5px; margin-bottom:15px;">🧠 Retos de Memoria</h3>
+                <h3 style="color:#eee; border-bottom:1px solid #00ffff; padding-bottom:5px; margin-bottom:10px; font-size:1.1rem;">🧠 Retos de Memoria</h3>
                 ${memoryHtml}
             `;
 

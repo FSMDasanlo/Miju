@@ -40,6 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPlayerName = null;
     let allPlayersData = []; // Para calcular rankings globales
 
+    // --- FRASES MOTIVADORAS ---
+    const motivationalPhrases = [
+        "¡No te rindas! La próxima vez será mejor.",
+        "El fracaso es solo una oportunidad para empezar de nuevo con más inteligencia.",
+        "¡Sigue intentándolo! Cada intento te acerca más al éxito.",
+        "La memoria es un músculo, ¡sigue entrenándola!",
+        "¡Ánimo! Hasta los más grandes campeones han tropezado.",
+        "La perseverancia es la clave. ¡Vamos a por la siguiente!",
+        "¡Buen intento! La práctica hace al maestro."
+    ];
+
     // --- DATOS ---
     const DATA = {
         numeros: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -320,7 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const finalScore = currentLevelIndex;
 
         isInputBlocked = true;
-        displayArea.innerHTML = '<span style="color: #ff0000; font-size: 3rem;">¡Fallaste!</span>';
+        const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+        displayArea.innerHTML = `<span style="color: #ff0000; font-size: 3rem;">¡Fallaste!</span><p style="color: #aaa; font-size: 1.1rem; margin-top: 10px; font-style: italic;">${randomPhrase}</p>`;
         inputArea.innerHTML = ''; // Limpiar controles para mostrar el menú
         
         let recordInfo = { isRecord: false };
