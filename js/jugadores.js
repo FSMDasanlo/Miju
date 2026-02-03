@@ -36,16 +36,70 @@ document.addEventListener('DOMContentLoaded', () => {
         playerEmailInput.parentNode.insertBefore(playerPhoneInput, playerEmailInput.nextSibling);
     }
 
-    // Inyectar campo de Foto (URL)
+    // Inyectar campo de Foto (URL) con botón de subida
     let playerPhotoInput = document.getElementById('player-photo');
     if (!playerPhotoInput && playerEmailInput) {
+        // Contenedor para agrupar input y botón
+        const photoContainer = document.createElement('div');
+        photoContainer.style.display = 'flex';
+        photoContainer.style.gap = '5px';
+
         playerPhotoInput = document.createElement('input');
         playerPhotoInput.type = 'url';
         playerPhotoInput.id = 'player-photo';
-        playerPhotoInput.placeholder = 'URL Foto';
+        playerPhotoInput.placeholder = 'URL Foto (o sube una)';
+        playerPhotoInput.style.flexGrow = '1';
+
+        // Input file oculto y botón
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+
+        const uploadBtn = document.createElement('button');
+        uploadBtn.type = 'button';
+        uploadBtn.innerHTML = '📁';
+        uploadBtn.title = "Subir imagen";
+        uploadBtn.className = 'btn-secondary';
+        uploadBtn.style.padding = '0 10px';
+        uploadBtn.style.cursor = 'pointer';
+
+        uploadBtn.addEventListener('click', () => {
+            if (typeof firebase.storage !== 'function') {
+                alert("⚠️ Para subir fotos necesitas habilitar Firebase Storage.\n\nAsegúrate de incluir el script de storage en tu HTML:\n<script src='https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js'></script>");
+                return;
+            }
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            uploadBtn.innerHTML = '⏳';
+            uploadBtn.disabled = true;
+            try {
+                const storageRef = firebase.storage().ref();
+                const fileRef = storageRef.child(`jugadores/${Date.now()}_${file.name}`);
+                await fileRef.put(file);
+                const url = await fileRef.getDownloadURL();
+                playerPhotoInput.value = url;
+                uploadBtn.innerHTML = '✅';
+            } catch (error) {
+                console.error(error);
+                alert("Error al subir imagen.");
+                uploadBtn.innerHTML = '❌';
+            } finally {
+                setTimeout(() => { uploadBtn.disabled = false; uploadBtn.innerHTML = '📁'; }, 3000);
+            }
+        });
+
+        photoContainer.appendChild(playerPhotoInput);
+        photoContainer.appendChild(uploadBtn);
+        photoContainer.appendChild(fileInput);
+
         // Insertar después del teléfono si existe, si no después del email
         const refNode = playerPhoneInput ? playerPhoneInput.nextSibling : playerEmailInput.nextSibling;
-        playerEmailInput.parentNode.insertBefore(playerPhotoInput, refNode);
+        playerEmailInput.parentNode.insertBefore(photoContainer, refNode);
     }
 
     // Inyectar botón de Cancelar Edición
@@ -72,6 +126,101 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- MEJORA DE INTERFAZ (REDISEÑO) ---
+    
+    // 1. Agrupar botones en un contenedor para el Grid
+    // Esto evita que los botones sean celdas gigantes en el grid
+    if (submitBtn && addPlayerForm) {
+        const actionGroup = document.createElement('div');
+        actionGroup.className = 'form-actions-group';
+        // Movemos los botones dentro de este grupo
+        addPlayerForm.appendChild(actionGroup);
+        actionGroup.appendChild(submitBtn);
+        if (cancelBtn) actionGroup.appendChild(cancelBtn);
+    }
+
+    // 2. Ocultar el formulario inicialmente y ponerle título
+    const formContainer = addPlayerForm.closest('.form-container') || addPlayerForm.parentElement;
+    if (formContainer) {
+        formContainer.classList.add('hidden');
+        
+        // Añadir un título bonito al formulario si no lo tiene
+        if (!formContainer.querySelector('h2')) {
+            const formTitle = document.createElement('h2');
+            formTitle.textContent = "Nuevo Jugador";
+            formTitle.style.color = "#00ffff";
+            formTitle.style.borderBottom = "1px solid #333";
+            formTitle.style.paddingBottom = "10px";
+            formContainer.insertBefore(formTitle, addPlayerForm);
+        }
+    }
+
+    // 3. Inyectar botón "+" en la cabecera de la lista
+    const listContainer = playersList.closest('.list-container') || playersList.parentElement;
+    if (listContainer) {
+        // Buscamos el H2 existente o creamos uno
+        let listHeader = listContainer.querySelector('h2');
+        if (!listHeader) {
+            listHeader = document.createElement('h2');
+            listHeader.textContent = "Jugadores Registrados";
+            listContainer.insertBefore(listHeader, playersList);
+        }
+
+        // Crear el botón "+"
+        const btnShowAdd = document.createElement('button');
+        btnShowAdd.innerHTML = '➕';
+        btnShowAdd.className = 'btn-icon-medium'; // Reutilizamos estilo
+        btnShowAdd.style.background = 'linear-gradient(90deg, #00ffff, #0077ff)';
+        btnShowAdd.style.border = 'none';
+        btnShowAdd.style.color = '#000';
+        btnShowAdd.style.fontWeight = 'bold';
+        btnShowAdd.style.marginLeft = '15px';
+        btnShowAdd.style.display = 'inline-flex';
+        btnShowAdd.title = "Añadir Nuevo Jugador";
+
+        // Ajustar el header para que quepan el texto y el botón
+        listHeader.style.display = 'flex';
+        listHeader.style.alignItems = 'center';
+        listHeader.appendChild(btnShowAdd);
+
+        // --- BUSCADOR EN TIEMPO REAL ---
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = '🔍 Buscar jugador...';
+        searchInput.style.width = '100%';
+        searchInput.style.padding = '10px';
+        searchInput.style.marginBottom = '15px';
+        searchInput.style.marginTop = '10px';
+        searchInput.style.background = 'rgba(255, 255, 255, 0.05)';
+        searchInput.style.border = '1px solid #333';
+        searchInput.style.borderRadius = '5px';
+        searchInput.style.color = '#fff';
+        
+        listContainer.insertBefore(searchInput, playersList);
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const items = playersList.querySelectorAll('li');
+            items.forEach(li => {
+                const text = li.textContent.toLowerCase();
+                li.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // Evento para mostrar/ocultar formulario
+        btnShowAdd.addEventListener('click', () => {
+            formContainer.classList.toggle('hidden');
+            if (!formContainer.classList.contains('hidden')) {
+                // Pequeña animación y foco
+                formContainer.animate([
+                    { opacity: 0, transform: 'translateY(-10px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], { duration: 300 });
+                playerNameInput.focus();
+            }
+        });
+    }
+
     // --- FUNCIONES ---
 
     const resetForm = () => {
@@ -79,6 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         editingPlayerId = null;
         if (submitBtn) submitBtn.textContent = originalSubmitText;
         if (cancelBtn) cancelBtn.style.display = 'none';
+        // Opcional: Ocultar formulario al cancelar/resetear si se prefiere
+        // formContainer.classList.add('hidden'); 
     };
 
     /**
@@ -123,12 +274,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (submitBtn) submitBtn.textContent = 'Guardar';
                     if (cancelBtn) cancelBtn.style.display = 'block';
+
+                    // Mostrar el formulario si está oculto
+                    if (formContainer) {
+                        formContainer.classList.remove('hidden');
+                        formContainer.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    
                     playerNameInput.focus();
                 });
 
                 // Evento para eliminar
                 li.querySelector('.btn-delete-player').addEventListener('click', async () => {
                     if (confirm(`¿Eliminar a ${player.name}?`)) {
+                        // Si tiene foto y está en Firebase Storage, la borramos para ahorrar espacio
+                        if (player.photo && player.photo.includes('firebasestorage') && typeof firebase.storage === 'function') {
+                            try {
+                                await firebase.storage().refFromURL(player.photo).delete();
+                            } catch (err) {
+                                console.warn("No se pudo borrar la imagen asociada:", err);
+                            }
+                        }
+
                         await playersCollection.doc(doc.id).delete();
                         renderPlayers(); // Recargar la lista
                     }
@@ -185,12 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (editingPlayerId) {
                 // MODO EDICIÓN
                 await playersCollection.doc(editingPlayerId).update(playerData);
+                alert("¡Jugador actualizado correctamente!");
             } else {
                 // MODO CREACIÓN
                 await playersCollection.add(playerData);
+                alert("¡Jugador añadido con éxito!");
             }
             
             resetForm();
+            // Cerrar formulario automáticamente
+            if (formContainer) formContainer.classList.add('hidden');
             renderPlayers(); // Volver a renderizar la lista actualizada
         }
     });

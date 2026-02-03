@@ -213,12 +213,20 @@ h2 {
 }
 
 #add-player-form {
-    display: flex;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+/* En pantallas medianas/grandes, dos columnas */
+@media (min-width: 600px) {
+    #add-player-form {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 input[type="text"], input[type="number"], input[type="tel"], input[type="url"] {
-    flex-grow: 1;
+    width: 100%;
     padding: 10px 15px;
     background: #1a1a2e;
     border: 1px solid #333;
@@ -248,6 +256,15 @@ input[type="text"], input[type="number"], input[type="tel"], input[type="url"] {
     object-fit: cover;
     margin-right: 15px;
     border: 2px solid #00ffff;
+}
+
+/* Grupo de botones del formulario (inyectado por JS) */
+.form-actions-group {
+    grid-column: 1 / -1; /* Ocupa todo el ancho */
+    display: flex;
+    justify-content: flex-end; /* Alineados a la derecha */
+    gap: 10px;
+    margin-top: 10px;
 }
 
 /* --- ESTILOS ESPECÍFICOS DE PARTIDAS --- */
