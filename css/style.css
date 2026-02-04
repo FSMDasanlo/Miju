@@ -169,7 +169,9 @@ body {
     max-width: 900px;
     margin: 0 auto;
     padding: 2rem;
-    width: 90%;
+    /* Hacemos el contenedor fluido por defecto para que se adapte a todas las pantallas.
+       El max-width lo limita en pantallas grandes y el padding crea los márgenes. */
+    width: 100%; 
 }
 
 .page-header {
@@ -1044,6 +1046,16 @@ input[type="text"], input[type="number"], input[type="tel"], input[type="url"] {
         padding: 12px;
         font-size: 1rem;
         margin-bottom: 1rem;
+    }
+
+    /* Ajuste para que los contenedores ocupen todo el ancho en móvil */
+    .page-container {
+        width: 100%;
+        padding: 1.5rem 1rem; /* Menos padding lateral */
+    }
+
+    .form-container, .list-container {
+        padding: 1rem; /* Reducimos también el padding interno de los paneles */
     }
 }
 

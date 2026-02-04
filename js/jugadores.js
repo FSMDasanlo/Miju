@@ -401,6 +401,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sortedModes = Array.from(allModes).sort();
 
                 for (const mode of sortedModes) {
+                    // Ocultar datos del modo antiguo 'fichas'
+                    if (mode === 'fichas') continue;
+
                     const playerScore = memoryScores[mode] || 0;
                     const globalRec = globalRecords[mode] || { score: 0, holder: '-' };
                     const modeName = mode.charAt(0).toUpperCase() + mode.slice(1);
@@ -411,18 +414,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const bgStyle = isRecordHolder ? 'background:rgba(255, 215, 0, 0.1);' : 'background:rgba(0,255,255,0.05);';
 
                     memoryHtml += `
-                    <div class="stat-box" style="${bgStyle} padding:10px; border-radius:5px; ${borderStyle}">
-                        <div class="stat-label" style="color:#00ffff; margin-bottom:5px; font-weight:bold;">${modeName}</div>
+                    <div class="stat-box" style="${bgStyle} padding:5px; border-radius:5px; ${borderStyle} gap:2px;">
+                        <div class="stat-label" style="color:#00ffff; margin-bottom:0; font-weight:bold; font-size:0.75rem;">${modeName}</div>
                         
-                        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px;">
-                            <span style="color:#aaa; font-size:0.8rem;">Tú:</span>
-                            <span style="font-weight:bold; font-size:1.1rem; color:${isRecordHolder ? '#ffd700' : '#fff'}">${playerScore}</span>
+                        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:0; align-items:center;">
+                            <span style="color:#aaa; font-size:0.7rem;">Tú:</span>
+                            <span style="font-weight:bold; font-size:0.9rem; color:${isRecordHolder ? '#ffd700' : '#fff'}">${playerScore}</span>
                         </div>
                         
-                        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:5px; width:100%;">
+                        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:2px; width:100%;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:0.8rem; color:#ffd700;">${globalRec.holder}</span>
-                                <span style="font-weight:bold; color:#ffd700;">${globalRec.score}</span>
+                                <span style="font-size:0.7rem; color:#ffd700;">${globalRec.holder}</span>
+                                <span style="font-weight:bold; font-size:0.9rem; color:#ffd700;">${globalRec.score}</span>
                             </div>
                         </div>
                     </div>`;
@@ -434,10 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 4. Renderizar HTML
             contentDiv.innerHTML = `
-                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:15px;">
-                    <img src="${player.photo || 'https://via.placeholder.com/80?text=U'}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #00ffff;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:10px;">
+                    <img src="${player.photo || 'https://via.placeholder.com/80?text=U'}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #00ffff;">
                     <div>
-                        <h2 style="color:#00ffff; margin:0; font-size:1.5rem;">${player.name}</h2>
+                        <h2 style="color:#00ffff; margin:0; font-size:1.3rem;">${player.name}</h2>
                         <p style="color:#aaa; margin-top:4px; font-size:0.8rem;">📧 ${player.email || 'Sin email'}</p>
                         <p style="color:#aaa; font-size:0.8rem;">📞 ${player.phone || 'Sin teléfono'}</p>
                     </div>

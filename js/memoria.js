@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPlayerId = null;
     let currentPlayerName = null;
     let currentRecord = 0; // Récord actual del modo
+    let currentRecordHolder = ''; // Nombre del poseedor del récord
     let allPlayersData = []; // Para calcular rankings globales
 
     // --- FRASES MOTIVADORAS ---
@@ -145,10 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Calcular récord actual para mostrarlo
         currentRecord = 0;
+        currentRecordHolder = '';
         allPlayersData.forEach(p => {
             const s = p.memory_scores || {};
             if ((s[currentMode] || 0) > currentRecord) {
                 currentRecord = s[currentMode] || 0;
+                currentRecordHolder = p.name;
             }
         });
 
@@ -221,22 +224,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function nextLevel() {
-        // Calcular cantidad de elementos.
-        // Niveles 1 y 2 (índices 0 y 1): 1 y 2 elementos respectivamente (sin repetir).
-        // A partir de ahí (índice 2+): 3, 3, 4, 4, 5, 5...
+        userSequence = []; // Reset user input for the new level
+
         let qty;
-        if (currentLevelIndex < 2) {
-            qty = currentLevelIndex + 1;
+
+        // --- LÓGICA ACUMULATIVA (SIMON SAYS) para 'figuras' y 'colores' ---
+        if (currentMode === 'figuras' || currentMode === 'colores') {
+            const source = DATA[currentMode];
+            const newItem = source[Math.floor(Math.random() * source.length)];
+            gameSequence.push(newItem); // Add one new item to the sequence
+            qty = gameSequence.length;
         } else {
-            qty = Math.floor((currentLevelIndex - 2) / 2) + 3;
+            // --- LÓGICA ORIGINAL (NUEVA SECUENCIA) para 'numeros' y 'letras' ---
+            // Calcular cantidad de elementos.
+            if (currentLevelIndex < 2) {
+                qty = currentLevelIndex + 1;
+            } else {
+                qty = Math.floor((currentLevelIndex - 2) / 2) + 3;
+            }
+            gameSequence = generateSequence(qty);
         }
         
         // Mostrar Nivel y Récord
-        let recordText = currentRecord > 0 ? ` <span style="color:#ffd700; margin-left:15px; text-shadow:0 0 5px #b8860b;">🏆 ${currentRecord}</span>` : '';
-        levelIndicator.innerHTML = `Nivel ${currentLevelIndex + 1} <span style="font-size:0.8em; color:#aaa;">(${qty} elems)</span>${recordText}`;
-
-        userSequence = [];
-        gameSequence = generateSequence(qty);
+        let recordText = currentRecord > 0 ? ` <span style="color:#ffd700; margin-left:15px; text-shadow:0 0 5px #b8860b;">🏆 ${currentRecord} <span style="font-size:0.5em; color:#ddd; vertical-align: middle;">(${currentRecordHolder})</span></span>` : '';
+        levelIndicator.innerHTML = `Nivel ${currentLevelIndex + 1}${recordText}`;
         
         // --- MOTIVACIÓN: Si estamos a 3 niveles del récord ---
         // Ejemplo: Récord 10. Nivel 8 (Index 7). 10 - 7 = 3.
@@ -384,10 +395,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isInputBlocked = true;
         const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+        
+        let sequenceHtml = '';
+        if (currentMode === 'numeros' || currentMode === 'letras' || currentMode === 'figuras') {
+            sequenceHtml = `
+                <div style="margin-top: 20px; text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Secuencia correcta:</div>
+                    <div style="font-size: 1.5rem; letter-spacing: 3px; color: #00ffff; font-weight: bold;">${gameSequence.join(' ')}</div>
+                </div>`;
+        }
+
         displayArea.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
                 <div style="color: #ff0000; font-size: 3rem; margin-bottom: 25px;">¡Fallaste!</div>
                 <div style="color: #aaa; font-size: 1.1rem; font-style: italic;">${randomPhrase}</div>
+                ${sequenceHtml}
             </div>
         `;
         inputArea.innerHTML = ''; // Limpiar controles para mostrar el menú
