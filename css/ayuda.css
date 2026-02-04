@@ -1,0 +1,169 @@
+/* Estilos para la página de ayuda */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f0f1a;
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #00ffff;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    color: #00ffff;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+.back-link {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.back-link:hover {
+    color: #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+    border-color: #00ffff;
+}
+
+.intro-text {
+    background: rgba(0, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2.5rem;
+    border-left: 4px solid #00ffff;
+}
+
+.note {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.help-section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.help-section h2 {
+    font-size: 2rem;
+    color: #eee;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+}
+
+.help-section h3 {
+    font-size: 1.5rem;
+    color: #00ffff;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.help-section p {
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.help-section ul {
+    list-style-position: inside;
+    padding-left: 10px;
+    margin-bottom: 1rem;
+}
+
+.help-section li {
+    margin-bottom: 0.5rem;
+}
+
+.help-section img {
+    width: 100%;
+    max-width: 600px;
+    display: block;
+    margin: 1.5rem auto;
+    border-radius: 8px;
+    border: 2px solid #00ffff;
+    background: #1a1a2e; /* Fondo para placeholders */
+    height: auto;
+}
+
+.button-explainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.button-explainer div {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 5px;
+    border-left: 3px solid #555;
+}
+
+.button-explainer strong {
+    color: #00ffff;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 1rem;
+    }
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    .help-section {
+        padding: 1.5rem;
+    }
+    .help-section h2 {
+        font-size: 1.6rem;
+    }
+}
+
+.help-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.help-footer a {
+    color: #00ffff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.help-footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+}

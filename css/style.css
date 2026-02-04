@@ -78,13 +78,39 @@ body {
     transition: opacity 1s ease-in;
 }
 
+.menu-header {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
 .menu-header h2 {
     font-size: 3rem;
-    margin-bottom: 2rem;
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
     letter-spacing: 15px;
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    margin: 0; /* Quitamos el margen inferior del h2 para que lo controle el contenedor */
+    animation: title-entrance 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.help-btn {
+    position: absolute;
+    right: 0;
+    font-size: 2rem;
+    text-decoration: none;
+    transition: transform 0.2s;
+    animation: help-pulse 3s infinite ease-in-out;
+}
+
+.help-btn:hover {
+    animation: none; /* Detenemos el latido al pasar el ratón */
+    transform: scale(1.2);
+    text-shadow: 0 0 20px #00ffff;
 }
 
 .grid-container {
@@ -162,6 +188,28 @@ body {
 @keyframes load {
     0% { width: 0%; }
     100% { width: 100%; }
+}
+
+/* Animación de latido para el botón de ayuda */
+@keyframes help-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; text-shadow: 0 0 10px #00ffff; }
+}
+
+/* Animación de entrada para el título MIJU */
+@keyframes title-entrance {
+    0% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+        letter-spacing: 5px;
+        filter: blur(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        letter-spacing: 15px;
+        filter: blur(0);
+    }
 }
 
 /* --- ESTILOS PARA PÁGINAS INTERIORES (ej. jugadores.html) --- */
