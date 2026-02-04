@@ -251,12 +251,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const player = doc.data();
                 const li = document.createElement('li');
                 
+                // Generar avatar por defecto (Iniciales)
+                const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=random&color=fff&size=128`;
+                const avatarSrc = player.photo || defaultAvatar;
+                
                 li.innerHTML = `
                     <div style="display: flex; align-items: center; flex-grow: 1;">
-                        ${player.photo ? `<img src="${player.photo}" class="player-avatar-small" onerror="this.style.display='none'">` : ''}
+                        <img src="${avatarSrc}" class="player-avatar-small" onerror="this.src='${defaultAvatar}'">
                         <div style="display: flex; flex-direction: column;">
                             <span style="font-weight: bold;">${player.name}</span>
-                            <span style="font-size: 0.8rem; color: #aaa;">${player.email || ''} ${player.phone ? ' | 📞 ' + player.phone : ''}</span>
+                            <span style="font-size: 0.8rem; color: #aaa;">${player.phone ? '📞 ' + player.phone : ''}</span>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
@@ -436,9 +440,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 4. Renderizar HTML
+            const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=random&color=fff&size=128`;
+            const avatarSrc = player.photo || defaultAvatar;
+
             contentDiv.innerHTML = `
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <img src="${player.photo || 'https://via.placeholder.com/80?text=U'}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #00ffff;">
+                    <img src="${avatarSrc}" onerror="this.src='${defaultAvatar}'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #00ffff;">
                     <div>
                         <h2 style="color:#00ffff; margin:0; font-size:1.3rem;">${player.name}</h2>
                         <p style="color:#aaa; margin-top:4px; font-size:0.8rem;">📧 ${player.email || 'Sin email'}</p>
