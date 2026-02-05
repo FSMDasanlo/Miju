@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const item of gameSequence) {
             if (!isGameActive) return;
             // Pausa entre elementos (más rápida para colores)
-            await sleep(currentMode === 'colores' ? 250 : 500);
+            await sleep(currentMode === 'colores' ? 250 : 200);
             if (!isGameActive) return;
             
             if (currentMode === 'colores') {
@@ -332,14 +332,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btn = document.getElementById(`figura-${item}`);
                 if (btn) {
                     btn.classList.add('active'); // Usaremos la clase 'active' de simon-btn
-                    await sleep(800);
+                    await sleep(500);
                     if (!isGameActive) return;
                     btn.classList.remove('active');
                 }
             } else {
                 // Mostrar texto (número/letra)
                 displayArea.textContent = item;
-                await sleep(1000);
+                await sleep(600);
                 if (!isGameActive) return;
                 displayArea.textContent = '';
             }
