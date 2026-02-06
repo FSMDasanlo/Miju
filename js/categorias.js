@@ -171,12 +171,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </p>
         `;
 
+        // Contenedor fila para botones
+        const buttonsRow = document.createElement('div');
+        buttonsRow.style.display = 'flex';
+        buttonsRow.style.gap = '10px';
+        dangerZoneContainer.appendChild(buttonsRow);
+
         // 2. Crear botón de Eliminar Duplicados
         const btnRemoveDupes = document.createElement('button');
         btnRemoveDupes.className = 'action-btn';
         btnRemoveDupes.style.background = 'linear-gradient(90deg, #ff9900, #ff5500)';
-        btnRemoveDupes.innerHTML = '🧹 Eliminar Preguntas Duplicadas';
-        dangerZoneContainer.appendChild(btnRemoveDupes);
+        btnRemoveDupes.innerHTML = '🧹 Eliminar Duplicados';
+        btnRemoveDupes.style.marginBottom = '0';
+        btnRemoveDupes.style.flex = '1';
+        buttonsRow.appendChild(btnRemoveDupes);
 
         // 3. Insertar el contenedor en el DOM (Reorganización solicitada)
         const individualUploadCard = btnAddSingle ? (btnAddSingle.closest('.list-container') || btnAddSingle.closest('.form-container')) : null;
@@ -190,13 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 4. Mover el botón de "Borrar Todo" al nuevo contenedor y estilizarlo
-        dangerZoneContainer.appendChild(btnDeleteAll);
+        buttonsRow.appendChild(btnDeleteAll);
         
-        btnDeleteAll.innerHTML = '🗑️ Borrar TODA la base de datos';
+        btnDeleteAll.innerHTML = '🗑️ Borrar Todo';
         btnDeleteAll.className = 'action-btn';
         btnDeleteAll.style.background = 'linear-gradient(90deg, #ff4444, #b71c1c)';
-        btnDeleteAll.style.marginTop = '10px';
+        btnDeleteAll.style.marginTop = '0';
         btnDeleteAll.style.marginBottom = '0';
+        btnDeleteAll.style.flex = '1';
 
         // 5. Añadir los listeners a los botones
         btnRemoveDupes.addEventListener('click', async () => {
@@ -214,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const normalizedText = data.texto ? data.texto.trim().toLowerCase() : '';
 
                     if (normalizedText && seenTexts.has(normalizedText)) {
-                        duplicates.push(doc.id);
+                        duplicates.push({ id: doc.id, text: data.texto });
                     } else {
                         seenTexts.add(normalizedText);
                     }
@@ -222,20 +231,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (duplicates.length === 0) {
                     alert("¡Todo limpio! No se encontraron preguntas duplicadas.");
-                } else if (confirm(`⚠️ Se han encontrado ${duplicates.length} preguntas repetidas.\n\n¿Quieres eliminarlas y dejar solo una copia de cada una?`)) {
-                    const chunkSize = 400;
-                    const chunks = [];
-                    for (let i = 0; i < duplicates.length; i += chunkSize) {
-                        chunks.push(duplicates.slice(i, i + chunkSize));
-                    }
+                } else {
+                    let msg = `⚠️ Se han encontrado ${duplicates.length} preguntas repetidas.\n\nSe eliminarán las siguientes (primeras 15):\n`;
+                    duplicates.slice(0, 15).forEach(d => {
+                        msg += `- ${d.text ? d.text.substring(0, 50) : 'Sin texto'}...\n`;
+                    });
+                    if (duplicates.length > 15) msg += `... y ${duplicates.length - 15} más.\n`;
+                    msg += `\n¿Confirmar eliminación?`;
 
-                    for (const chunk of chunks) {
-                        const batch = db.batch();
-                        chunk.forEach(id => batch.delete(questionsCollection.doc(id)));
-                        await batch.commit();
-                    }
+                    if (confirm(msg)) {
+                        const chunkSize = 400;
+                        const chunks = [];
+                        for (let i = 0; i < duplicates.length; i += chunkSize) {
+                            chunks.push(duplicates.slice(i, i + chunkSize));
+                        }
 
-                    alert(`¡Limpieza completada! Se eliminaron ${duplicates.length} duplicados.`);
+                        for (const chunk of chunks) {
+                            const batch = db.batch();
+                            chunk.forEach(item => batch.delete(questionsCollection.doc(item.id)));
+                            await batch.commit();
+                        }
+                        alert(`¡Limpieza completada! Se eliminaron ${duplicates.length} duplicados.`);
+                    }
                 }
                 renderQuestions(); // Recargar siempre
             } catch (error) {

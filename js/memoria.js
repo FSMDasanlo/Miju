@@ -541,9 +541,107 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = p.name;
                 playerSelect.appendChild(option);
             });
+            setupCustomDropdown();
         } catch (error) {
             console.error("Error cargando jugadores:", error);
         }
+    }
+
+    function setupCustomDropdown() {
+        // Evitar duplicados si se recarga
+        const existingWrapper = document.querySelector('.custom-select-wrapper');
+        if (existingWrapper) existingWrapper.remove();
+
+        playerSelect.style.display = 'none'; // Ocultar select nativo
+
+        // Crear contenedor
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-wrapper';
+        wrapper.style.position = 'relative';
+        wrapper.style.width = '100%';
+        wrapper.style.maxWidth = '300px';
+        wrapper.style.margin = '0 auto 1rem auto';
+
+        // Crear input buscador
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '🔍 Buscar nombre...';
+        input.style.width = '100%';
+        input.style.padding = '12px';
+        input.style.borderRadius = '5px';
+        input.style.border = '1px solid #00ffff';
+        input.style.background = '#1a1a2e';
+        input.style.color = '#fff';
+        input.style.cursor = 'text';
+
+        // Crear lista desplegable
+        const list = document.createElement('div');
+        list.className = 'custom-select-list hidden';
+        list.style.position = 'absolute';
+        list.style.top = '100%';
+        list.style.left = '0';
+        list.style.width = '100%';
+        list.style.maxHeight = '250px';
+        list.style.overflowY = 'auto';
+        list.style.background = '#0f0f1a';
+        list.style.border = '1px solid #333';
+        list.style.zIndex = '1000';
+        list.style.borderRadius = '0 0 5px 5px';
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(list);
+        playerSelect.parentNode.insertBefore(wrapper, playerSelect);
+
+        // Función de renderizado
+        const renderList = (filter = '') => {
+            list.innerHTML = '';
+            const filtered = allPlayersData.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+            
+            if (filtered.length === 0) {
+                const item = document.createElement('div');
+                item.textContent = 'No encontrado';
+                item.style.padding = '10px';
+                item.style.color = '#aaa';
+                list.appendChild(item);
+                return;
+            }
+
+            filtered.forEach(p => {
+                const item = document.createElement('div');
+                item.textContent = p.name;
+                item.style.padding = '10px';
+                item.style.cursor = 'pointer';
+                item.style.borderBottom = '1px solid #222';
+                
+                item.addEventListener('mouseover', () => item.style.background = '#00ffff22');
+                item.addEventListener('mouseout', () => item.style.background = 'transparent');
+                
+                item.addEventListener('click', () => {
+                    input.value = p.name;
+                    playerSelect.value = p.id; // Actualizar select original oculto
+                    list.classList.add('hidden');
+                    playerSelect.dispatchEvent(new Event('change')); // Disparar lógica existente
+                });
+                list.appendChild(item);
+            });
+        };
+
+        // Eventos
+        input.addEventListener('focus', () => {
+            list.classList.remove('hidden');
+            renderList();
+        });
+
+        input.addEventListener('input', (e) => {
+            list.classList.remove('hidden');
+            renderList(e.target.value);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                list.classList.add('hidden');
+            }
+        });
     }
 
     function handlePlayerSelection() {

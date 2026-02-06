@@ -444,8 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const avatarSrc = player.photo || defaultAvatar;
 
             contentDiv.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <img src="${avatarSrc}" onerror="this.src='${defaultAvatar}'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #00ffff;">
+                <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:20px;">
+                    <img src="${avatarSrc}" onerror="this.src='${defaultAvatar}'" style="width:150px; height:150px; border-radius:50%; object-fit:cover; border:4px solid #00ffff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);">
                     <div>
                         <h2 style="color:#00ffff; margin:0; font-size:1.3rem;">${player.name}</h2>
                         <p style="color:#aaa; margin-top:4px; font-size:0.8rem;">📧 ${player.email || 'Sin email'}</p>
