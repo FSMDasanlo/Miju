@@ -228,14 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let qty;
 
-        // --- LÓGICA ACUMULATIVA (SIMON SAYS) para 'figuras' y 'colores' ---
-        if (currentMode === 'figuras' || currentMode === 'colores') {
+        // --- LÓGICA ACUMULATIVA (SIMON SAYS) solo para 'figuras' ---
+        if (currentMode === 'figuras') {
             const source = DATA[currentMode];
             const newItem = source[Math.floor(Math.random() * source.length)];
             gameSequence.push(newItem); // Add one new item to the sequence
             qty = gameSequence.length;
         } else {
-            // --- LÓGICA ORIGINAL (NUEVA SECUENCIA) para 'numeros' y 'letras' ---
+            // --- LÓGICA ORIGINAL (NUEVA SECUENCIA) para 'numeros', 'letras' y 'colores' ---
             // Calcular cantidad de elementos.
             if (currentLevelIndex < 2) {
                 qty = currentLevelIndex + 1;
